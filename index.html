@@ -2,8 +2,8 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>飞飞和乖乖的恋爱宇宙</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>飞飞与乖乖的恋爱宇宙</title>
     
     <!-- iOS WebApp Settings -->
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -26,903 +26,171 @@
                         cardBg: '#FFFDF9',
                         pinkWarm: '#FFEDE8',
                         pinkAccent: '#FF7B9C',
-                        yellowWarm: '#FFF6E5',
-                        greenWarm: '#EBF7EE',
-                        purpleWarm: '#F5EFFF',
-                        textMain: '#524B46',
-                        textSub: '#8C827A'
-                    },
-                    borderRadius: {
-                        '2xl': '20px',
-                        '3xl': '28px'
+                        pinkDeep: '#E85D75'
                     }
                 }
             }
         }
     </script>
     <style>
-        /* 全屏与 Safe Area 设置，彻底避免 iOS / Mobile 出现空白条 */
-        html, body {
-            width: 100%;
-            height: 100%;
-            height: 100dvh;
-            margin: 0;
-            padding: 0;
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Quicksand:wght@500;700&display=swap');
+        body {
+            font-family: 'Quicksand', 'Noto Serif SC', sans-serif;
             background-color: #FAF7F2;
-            color: #524B46;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            overflow-x: hidden;
+            color: #4A403A;
             -webkit-tap-highlight-color: transparent;
+            overflow-x: hidden;
         }
-
-        /* Safe Area Padding for Notch & Home Bar */
-        .safe-area-container {
-            padding-top: max(16px, env(safe-area-inset-top));
-            padding-bottom: max(24px, env(safe-area-inset-bottom));
-            padding-left: max(16px, env(safe-area-inset-left));
-            padding-right: max(16px, env(safe-area-inset-right));
-            min-height: 100dvh;
+        .glass-card {
+            background: #FFFDF9;
+            border: 1px solid rgba(255, 123, 156, 0.15);
+            box-shadow: 0 10px 30px -10px rgba(232, 93, 117, 0.08);
+            border-radius: 1.5rem;
         }
-
-        #webgl-bg {
+        .heart-beat {
+            animation: heartBeat 1.2s infinite ease-in-out;
+        }
+        @keyframes heartBeat {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.18); }
+        }
+        .float-animation {
+            animation: floating 4s ease-in-out infinite;
+        }
+        @keyframes floating {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+        /* Canvas for 3D cosmos */
+        #cosmos-canvas {
             position: fixed;
             top: 0;
             left: 0;
             width: 100vw;
             height: 100vh;
-            height: 100dvh;
-            z-index: 0;
+            z-index: -1;
             pointer-events: none;
-            opacity: 0.65;
         }
-
-        .content-layer {
-            position: relative;
-            z-index: 10;
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(5px);
         }
-
-        .cream-card {
-            background: rgba(255, 253, 249, 0.90);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.85);
-            box-shadow: 0 8px 30px rgba(218, 203, 192, 0.18);
-        }
-
-        .tab-btn.active {
-            background-color: #FF7B9C;
-            color: #ffffff;
-            box-shadow: 0 4px 12px rgba(255, 123, 156, 0.35);
-        }
-
-        /* 逐个弹性跳出动画 (Sequential Spring Pop) */
-        .pop-sequence-item {
-            opacity: 0;
-            transform: scale(0.3) translateY(30px);
-            animation: popUpSpring 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-        }
-
-        @keyframes popUpSpring {
-            to {
-                opacity: 1;
-                transform: scale(1) translateY(0);
-            }
-        }
-
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar {
-            width: 4px;
-            height: 4px;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #E8DFD8;
-            border-radius: 10px;
+        .modal.active {
+            display: flex;
         }
     </style>
 </head>
-<body class="antialiased select-none">
+<body class="pb-24">
 
-    <!-- Three.js 3D 柔光爱心宇宙背景 Canvas -->
-    <canvas id="webgl-bg"></canvas>
+    <!-- 3D Background Cosmos -->
+    <canvas id="cosmos-canvas"></canvas>
 
-    <!-- 顶层主内容区，应用 Safe Area -->
-    <div class="content-layer safe-area-container max-w-lg mx-auto flex flex-col space-y-5">
+    <!-- Header Banner -->
+    <header class="pt-8 pb-4 px-6 text-center">
+        <div class="inline-flex items-center gap-3 px-5 py-2.5 glass-card rounded-full shadow-sm float-animation">
+            <button id="love-btn" class="w-10 h-10 rounded-full bg-pinkWarm flex items-center justify-center text-pinkAccent shadow-inner cursor-pointer active:scale-95 transition">
+                <i class="fa-solid fa-heart text-lg heart-beat"></i>
+            </button>
+            <span class="text-lg font-bold tracking-wider text-gray-800">飞飞与乖乖</span>
+        </div>
+    </header>
 
-        <!-- 顶部导航栏 (Navbar Tabs) -->
-        <header class="cream-card rounded-full p-1.5 flex items-center justify-between text-xs font-medium">
-            <div class="flex items-center gap-2 pl-3">
-                <span class="w-7 h-7 rounded-full bg-pinkWarm text-pinkAccent flex items-center justify-center text-xs shadow-2xs">
-                    <i class="fa-solid fa-heart"></i>
-                </span>
-                <span class="font-bold text-gray-800 tracking-tight">飞飞与乖乖</span>
-            </div>
-            <nav class="flex gap-1 overflow-x-auto text-xs text-textSub pr-1">
-                <button onclick="switchTab('home')" id="tab-home" class="tab-btn active px-3 py-1.5 rounded-full transition">首页</button>
-                <button onclick="switchTab('albums')" id="tab-albums" class="tab-btn px-3 py-1.5 rounded-full transition">QQ相册</button>
-                <button onclick="switchTab('wishes')" id="tab-wishes" class="tab-btn px-3 py-1.5 rounded-full transition">心愿单</button>
-                <button onclick="switchTab('daily')" id="tab-daily" class="tab-btn px-3 py-1.5 rounded-full transition">日常</button>
-            </nav>
-        </header>
+    <main class="max-w-md mx-auto px-5 space-y-6">
 
-        <!-- PAGE 1: 首页 (Home Tab) -->
-        <main id="page-home" class="space-y-5">
-
-            <!-- 恋爱天数主卡片 -->
-            <section class="cream-card rounded-3xl p-6 text-center relative overflow-hidden">
-                <div class="text-[10px] tracking-widest text-textSub uppercase mb-1">Our Love Story</div>
-                <h1 class="text-lg font-bold text-gray-800 mb-4">喜欢你，是每天最想做的事</h1>
-
-                <!-- 头像与计数器 -->
-                <div class="flex items-center justify-center gap-6 my-2">
-                    <div class="text-center">
-                        <div class="w-16 h-16 rounded-full bg-pinkWarm p-1 border-2 border-white shadow-sm mx-auto mb-1 flex items-center justify-center text-3xl">
-                            👦🏻
-                        </div>
-                        <span class="text-xs font-bold text-textMain">飞飞</span>
-                    </div>
-
-                    <div class="text-center cursor-pointer group" onclick="openModal('modal-love-date')" title="点击修改恋爱时间">
-                        <div class="text-4xl font-extrabold text-pinkAccent tracking-tight flex items-baseline justify-center">
-                            <span id="love-days-count">1</span>
-                            <span class="text-sm font-normal ml-1 text-textSub">天</span>
-                        </div>
-                        <div class="text-[10px] text-pinkAccent bg-pinkWarm/70 px-3 py-0.5 rounded-full mt-1 inline-block group-hover:bg-pinkWarm transition">
-                            <i class="fa-solid fa-pen text-[8px] mr-1"></i>在一起第 <span id="days-badge">1</span> 天
-                        </div>
-                    </div>
-
-                    <div class="text-center">
-                        <div class="w-16 h-16 rounded-full bg-yellowWarm p-1 border-2 border-white shadow-sm mx-auto mb-1 flex items-center justify-center text-3xl">
-                            👧🏻
-                        </div>
-                        <span class="text-xs font-bold text-textMain">乖乖</span>
-                    </div>
+        <!-- Countdown Section -->
+        <section class="glass-card p-5 relative overflow-hidden">
+            <div class="flex justify-between items-center mb-4">
+                <div class="flex items-center gap-2">
+                    <span class="text-xs font-bold tracking-widest text-pinkAccent uppercase">Countdown</span>
+                    <h2 class="text-base font-bold text-gray-800">下一个小期待</h2>
                 </div>
-
-                <div class="mt-4 pt-3 border-t border-gray-100/80 text-xs text-textSub flex justify-between items-center px-2">
-                    <span id="love-start-date-text">始于 2026.10.15</span>
-                    <button onclick="openModal('modal-love-date')" class="text-pinkAccent font-medium hover:underline text-[11px]">修改起始日</button>
-                </div>
-            </section>
-
-            <!-- 下一个小期待 (倒计时板块) -->
-            <section class="cream-card rounded-3xl p-5 space-y-3.5">
-                <div class="flex justify-between items-center">
-                    <div>
-                        <span class="text-[9px] tracking-wider text-pinkAccent font-bold uppercase">COUNTDOWN</span>
-                        <h2 class="text-base font-bold text-gray-800">下一个小期待</h2>
-                    </div>
-                    <button onclick="openModal('modal-add-countdown')" class="text-xs bg-pinkWarm text-pinkAccent px-3 py-1.5 rounded-full font-medium hover:bg-pinkAccent hover:text-white transition flex items-center gap-1 shadow-2xs">
-                        <i class="fa-solid fa-plus text-[10px]"></i> 新增倒计时
-                    </button>
-                </div>
-
-                <!-- 倒计时动态列表 -->
-                <div id="countdown-container" class="grid grid-cols-1 gap-2.5">
-                    <!-- JS Dynamic Rendered -->
-                </div>
-            </section>
-
-            <!-- 今日打卡与待办 -->
-            <section class="grid grid-cols-2 gap-3.5">
-                <div class="cream-card rounded-3xl p-4">
-                    <span class="text-[9px] text-textSub font-bold tracking-wider">DAILY HABITS</span>
-                    <h3 class="text-sm font-bold text-gray-800 mb-2">习惯打卡</h3>
-                    <div class="text-xl font-bold text-pinkAccent mb-2" id="habit-progress">0 <span class="text-xs font-normal text-textSub">/ 3</span></div>
-                    <div class="flex flex-col gap-1.5 text-xs text-textMain">
-                        <button onclick="toggleHabit(this)" class="habit-btn text-left bg-white px-2.5 py-1.5 rounded-xl border border-gray-100 flex items-center justify-between">
-                            <span>💧 提醒多喝水</span> <i class="fa-regular fa-circle-check text-gray-300"></i>
-                        </button>
-                        <button onclick="toggleHabit(this)" class="habit-btn text-left bg-white px-2.5 py-1.5 rounded-xl border border-gray-100 flex items-center justify-between">
-                            <span>🍎 记得吃水果</span> <i class="fa-regular fa-circle-check text-gray-300"></i>
-                        </button>
-                        <button onclick="toggleHabit(this)" class="habit-btn text-left bg-white px-2.5 py-1.5 rounded-xl border border-gray-100 flex items-center justify-between">
-                            <span>🌙 早点睡觉呀</span> <i class="fa-regular fa-circle-check text-gray-300"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <div class="cream-card rounded-3xl p-4 flex flex-col justify-between">
-                    <div>
-                        <span class="text-[9px] text-textSub font-bold tracking-wider">OUR TODO</span>
-                        <h3 class="text-sm font-bold text-gray-800 mb-2">情侣待办</h3>
-                        <div id="todo-list" class="space-y-1.5 text-xs">
-                            <!-- Todo items -->
-                        </div>
-                    </div>
-                    <button onclick="addTodoPrompt()" class="text-xs text-pinkAccent bg-pinkWarm/80 py-2 rounded-xl font-medium mt-3 text-center w-full hover:bg-pinkWarm">
-                        + 添加新待办
-                    </button>
-                </div>
-            </section>
-
-            <!-- 快捷工具与小游戏区 -->
-            <section class="cream-card rounded-3xl p-4 space-y-3">
-                <h3 class="text-xs font-bold text-gray-700 uppercase tracking-wider">恋爱体验小工具</h3>
-                <div class="grid grid-cols-3 gap-2.5 text-center">
-                    <div onclick="showToast('🤖 贴心小管家：今天也要乖乖听话，多喝热水哦！')" class="bg-pinkWarm/50 p-3 rounded-2xl cursor-pointer hover:scale-102 transition">
-                        <div class="text-xl mb-1">🤖</div>
-                        <div class="text-xs font-bold text-gray-800">小管家</div>
-                    </div>
-                    <div onclick="showToast('🎮 默契大考验游戏即将上线~')" class="bg-yellowWarm/60 p-3 rounded-2xl cursor-pointer hover:scale-102 transition">
-                        <div class="text-xl mb-1">🎮</div>
-                        <div class="text-xs font-bold text-gray-800">情侣游戏</div>
-                    </div>
-                    <div onclick="showToast('🐶 宠物「年糕」今天蹭了蹭你！')" class="bg-greenWarm/60 p-3 rounded-2xl cursor-pointer hover:scale-102 transition">
-                        <div class="text-xl mb-1">🐶</div>
-                        <div class="text-xs font-bold text-gray-800">宠物年糕</div>
-                    </div>
-                </div>
-            </section>
-        </main>
-
-        <!-- PAGE 2: QQ 空间风格相册 (QQ Albums Tab) -->
-        <main id="page-albums" class="hidden space-y-4">
-
-            <!-- 顶部操作栏 -->
-            <div class="cream-card rounded-3xl p-4 flex justify-between items-center">
-                <div>
-                    <h2 class="text-base font-bold text-gray-800">我们的 QQ 相册</h2>
-                    <p class="text-xs text-textSub">记录恋爱里的每一个精彩瞬间</p>
-                </div>
-                <button onclick="openModal('modal-add-album')" class="text-xs bg-pinkAccent text-white px-3.5 py-2 rounded-full font-medium shadow-md hover:bg-pink-600 transition flex items-center gap-1">
-                    <i class="fa-solid fa-folder-plus text-xs"></i> 新建相册
+                <button onclick="openModal('countdown-modal')" class="text-xs bg-pinkWarm text-pinkAccent px-3 py-1.5 rounded-full font-medium hover:bg-pink-100 transition">
+                    <i class="fa-solid fa-plus mr-1"></i>新增倒计时
                 </button>
             </div>
-
-            <!-- 相册列表容器 -->
-            <div id="album-grid-container" class="grid grid-cols-2 gap-3.5">
-                <!-- JS Dynamic Rendered Album Cards -->
+            <div id="countdown-list" class="space-y-3">
+                <!-- Dynamic countdown items -->
             </div>
-        </main>
+        </section>
 
-        <!-- PAGE 3: 相册详情页 (Album Detail View) -->
-        <main id="page-album-detail" class="hidden space-y-4">
-            <!-- Detail Header -->
-            <div class="cream-card rounded-3xl p-4 space-y-3">
-                <div class="flex items-center justify-between">
-                    <button onclick="backToAlbums()" class="text-xs text-textSub bg-white px-3 py-1.5 rounded-full border border-gray-100 flex items-center gap-1">
-                        <i class="fa-solid fa-chevron-left text-[10px]"></i> 返回相册列表
-                    </button>
-                    <div class="flex gap-2">
-                        <button onclick="openEditAlbumModal()" class="text-xs text-gray-600 bg-white px-2.5 py-1.5 rounded-full border border-gray-100">编辑相册</button>
-                        <button onclick="triggerBatchUpload()" class="text-xs text-white bg-pinkAccent px-3 py-1.5 rounded-full font-medium flex items-center gap-1 shadow-2xs">
-                            <i class="fa-solid fa-plus text-[10px]"></i> 上传照片
-                        </button>
-                    </div>
-                </div>
-
-                <div>
-                    <h2 id="detail-album-title" class="text-lg font-bold text-gray-800">相册名称</h2>
-                    <p id="detail-album-desc" class="text-xs text-textSub mt-0.5">相册描述...</p>
-                </div>
-            </div>
-
-            <!-- 动态照片展示网格 (带 Pop Spring 动画) -->
-            <div id="photo-grid-container" class="grid grid-cols-2 gap-3">
-                <!-- Dynamic Photo Items -->
-            </div>
+        <!-- Habits & Todo Grid -->
+        <div class="grid grid-cols-1 gap-5">
             
-            <input type="file" id="batch-photo-input" multiple accept="image/*" class="hidden" onchange="handleBatchPhotoUpload(event)">
-        </main>
-
-        <!-- PAGE 4: 心愿单 (Wishes Tab) -->
-        <main id="page-wishes" class="hidden space-y-4">
-            <div class="cream-card rounded-3xl p-5 space-y-3">
-                <div class="flex justify-between items-center">
+            <!-- Daily Habits -->
+            <section class="glass-card p-5">
+                <div class="flex justify-between items-center mb-3">
                     <div>
-                        <h2 class="text-base font-bold text-gray-800">一百件想和你做的事</h2>
-                        <p class="text-xs text-textSub">打包浪漫，逐一实现</p>
+                        <span class="text-xs font-bold tracking-widest text-pinkAccent uppercase">Daily Habits</span>
+                        <h2 class="text-base font-bold text-gray-800">习惯打卡</h2>
                     </div>
-                    <button onclick="addWishPrompt()" class="text-xs bg-pinkWarm text-pinkAccent px-3 py-1.5 rounded-full font-medium">+ 许下新心愿</button>
+                    <button onclick="openModal('habit-modal')" class="text-xs bg-pinkWarm text-pinkAccent px-2.5 py-1 rounded-full font-medium">
+                        <i class="fa-solid fa-plus"></i> 新增
+                    </button>
                 </div>
-
-                <div id="wishes-container" class="space-y-2 pt-2">
-                    <!-- Wishes List -->
+                <div class="flex items-center justify-between mb-3 bg-pinkWarm/50 px-3 py-1.5 rounded-xl">
+                    <span id="habit-progress-text" class="text-xs font-semibold text-pinkDeep">0 / 3 完成</span>
+                    <div class="w-24 bg-gray-200 h-2 rounded-full overflow-hidden">
+                        <div id="habit-bar" class="bg-pinkAccent h-full transition-all duration-500" style="width: 0%"></div>
+                    </div>
                 </div>
-            </div>
-        </main>
-
-        <!-- PAGE 5: 日常碎碎念 (Daily Notes) -->
-        <main id="page-daily" class="hidden space-y-4">
-            <div class="cream-card rounded-3xl p-5 space-y-3">
-                <div class="flex justify-between items-center">
-                    <h2 class="text-base font-bold text-gray-800">日常碎碎念 & 小纸条</h2>
-                    <button onclick="openModal('modal-add-note')" class="text-xs bg-pinkAccent text-white px-3 py-1.5 rounded-full font-medium">写小纸条</button>
+                <div id="habit-list" class="space-y-2.5">
+                    <!-- Dynamic Habits -->
                 </div>
+            </section>
 
-                <div id="notes-container" class="space-y-3 pt-2">
-                    <!-- Dynamic Notes -->
+            <!-- Our Todo -->
+            <section class="glass-card p-5">
+                <div class="flex justify-between items-center mb-3">
+                    <div>
+                        <span class="text-xs font-bold tracking-widest text-pinkAccent uppercase">Our Todo</span>
+                        <h2 class="text-base font-bold text-gray-800">情侣待办</h2>
+                    </div>
+                    <button onclick="openModal('todo-modal')" class="text-xs bg-pinkWarm text-pinkAccent px-3 py-1.5 rounded-full font-medium hover:bg-pink-100 transition">
+                        <i class="fa-solid fa-plus mr-1"></i>添加新待办
+                    </button>
                 </div>
-            </div>
-        </main>
-
-    </div>
-
-    <!-- MODAL 1: 修改恋爱起始日 -->
-    <div id="modal-love-date" class="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-xs rounded-3xl p-6 space-y-4 shadow-2xl">
-            <h3 class="text-base font-bold text-gray-800">修改恋爱起始日期</h3>
-            <div>
-                <label class="text-xs text-textSub">在一起的日期</label>
-                <input type="date" id="input-love-date" class="w-full mt-1.5 p-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-pinkAccent">
-            </div>
-            <div class="flex gap-2 pt-1">
-                <button onclick="closeModal('modal-love-date')" class="flex-1 py-2 rounded-xl text-xs bg-gray-100 text-gray-600 font-medium">取消</button>
-                <button onclick="saveLoveDate()" class="flex-1 py-2 rounded-xl text-xs bg-pinkAccent text-white font-medium">保存修改</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL 2: 新增倒计时 -->
-    <div id="modal-add-countdown" class="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-xs rounded-3xl p-6 space-y-4 shadow-2xl">
-            <h3 class="text-base font-bold text-gray-800">添加新的期待/倒计时</h3>
-            <div>
-                <label class="text-xs text-textSub">期待的事 (如：看电影、去云南旅游)</label>
-                <input type="text" id="input-cd-title" placeholder="要做的事情..." class="w-full mt-1 p-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-pinkAccent">
-            </div>
-            <div>
-                <label class="text-xs text-textSub">目标日期</label>
-                <input type="date" id="input-cd-date" class="w-full mt-1 p-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-pinkAccent">
-            </div>
-            <div class="flex gap-2 pt-1">
-                <button onclick="closeModal('modal-add-countdown')" class="flex-1 py-2 rounded-xl text-xs bg-gray-100 text-gray-600 font-medium">取消</button>
-                <button onclick="saveCountdown()" class="flex-1 py-2 rounded-xl text-xs bg-pinkAccent text-white font-medium">确认添加</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL 3: 新增相册 (New Album) -->
-    <div id="modal-add-album" class="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-xs rounded-3xl p-6 space-y-4 shadow-2xl">
-            <h3 class="text-base font-bold text-gray-800">创建新相册</h3>
-            <div>
-                <label class="text-xs text-textSub">相册名称</label>
-                <input type="text" id="input-album-title" placeholder="例如：云南之旅、我们的日常" class="w-full mt-1 p-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-pinkAccent">
-            </div>
-            <div>
-                <label class="text-xs text-textSub">相册描述</label>
-                <textarea id="input-album-desc" rows="2" placeholder="记录相册背后的故事..." class="w-full mt-1 p-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-pinkAccent"></textarea>
-            </div>
-            <div class="flex gap-2 pt-1">
-                <button onclick="closeModal('modal-add-album')" class="flex-1 py-2 rounded-xl text-xs bg-gray-100 text-gray-600 font-medium">取消</button>
-                <button onclick="createNewAlbum()" class="flex-1 py-2 rounded-xl text-xs bg-pinkAccent text-white font-medium">创建相册</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL 4: 查看/编辑照片备注与大图浏览 (Photo Lightbox & Remark Modal) -->
-    <div id="modal-photo-viewer" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 hidden flex flex-col justify-between p-4">
-        <div class="flex justify-between items-center text-white pt-2 px-2">
-            <span id="viewer-photo-index" class="text-xs text-gray-300">1 / 1</span>
-            <button onclick="closeModal('modal-photo-viewer')" class="text-white text-xl p-2"><i class="fa-solid fa-xmark"></i></button>
+                <div id="todo-list" class="space-y-2.5">
+                    <!-- Dynamic Todos -->
+                </div>
+            </section>
         </div>
 
-        <!-- Center Image Display -->
-        <div class="flex-1 flex items-center justify-center my-2 relative">
-            <img id="viewer-image" src="" class="max-h-[60vh] max-w-full rounded-2xl object-contain shadow-2xl">
-        </div>
-
-        <!-- Bottom Remark Editing Section -->
-        <div class="bg-white/95 rounded-3xl p-4 space-y-2 text-gray-800">
-            <div class="flex justify-between items-center">
-                <span class="text-[10px] text-pinkAccent font-bold uppercase tracking-wider">PHOTO REMARK</span>
-                <button onclick="savePhotoRemark()" class="text-xs bg-pinkAccent text-white px-3 py-1 rounded-full">保存备注</button>
-            </div>
-            <input type="text" id="viewer-photo-title" placeholder="给照片取个名字..." class="w-full font-bold text-sm bg-transparent border-b border-gray-200 pb-1 focus:outline-none">
-            <textarea id="viewer-photo-note" rows="2" placeholder="写点当时的感想或心情吧..." class="w-full text-xs text-gray-600 bg-transparent focus:outline-none resize-none"></textarea>
-        </div>
-    </div>
-
-    <!-- MODAL 5: 写碎碎念小纸条 -->
-    <div id="modal-add-note" class="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-xs rounded-3xl p-6 space-y-4 shadow-2xl">
-            <h3 class="text-base font-bold text-gray-800">写一张情悄话纸条</h3>
-            <textarea id="input-note-content" rows="4" placeholder="今天想对TA说的悄悄话..." class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-pinkAccent"></textarea>
-            <div class="flex gap-2 pt-1">
-                <button onclick="closeModal('modal-add-note')" class="flex-1 py-2 rounded-xl text-xs bg-gray-100 text-gray-600 font-medium">取消</button>
-                <button onclick="saveNote()" class="flex-1 py-2 rounded-xl text-xs bg-pinkAccent text-white font-medium">贴上纸条</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Toast Notification Box -->
-    <div id="toast-msg" class="fixed top-10 left-1/2 -translate-x-1/2 bg-gray-900/85 text-white text-xs px-4 py-2.5 rounded-full shadow-2xl z-50 opacity-0 pointer-events-none transition duration-300">
-        提示信息
-    </div>
-
-    <script>
-        // Global App State & LocalStorage Persistence
-        let loveData = {
-            startDate: localStorage.getItem('love_start_date') || '2026-10-15',
-            countdowns: JSON.parse(localStorage.getItem('love_countdowns')) || [
-                { id: 1, title: '我们的第一个月纪念日', date: '2026-11-15', icon: '🎁' },
-                { id: 2, title: '下次见面一起吃火锅', date: '2026-11-01', icon: '🍲' }
-            ],
-            todos: JSON.parse(localStorage.getItem('love_todos')) || [
-                { id: 1, text: '去公园散步拍落叶', done: false },
-                { id: 2, text: '一起看一场新电影', done: true }
-            ],
-            wishes: JSON.parse(localStorage.getItem('love_wishes')) || [
-                { id: 1, text: '一起去大理看苍山洱海', done: false },
-                { id: 2, text: '穿情侣装去游乐园', done: false },
-                { id: 3, text: '一起做一顿丰盛的晚餐', done: true }
-            ],
-            notes: JSON.parse(localStorage.getItem('love_notes')) || [
-                { id: 1, content: '今天的天空很蓝，但没有你好看哦 ☁️', time: '10-20 14:30' }
-            ],
-            albums: JSON.parse(localStorage.getItem('qq_albums')) || [
-                {
-                    id: 'album-1',
-                    title: '我们的日常合照',
-                    desc: '平淡日子里的所有欢愉与温暖',
-                    cover: 'https://images.unsplash.com/photo-1518199266791-5375a83190b7?auto=format&fit=crop&w=600&q=80',
-                    photos: [
-                        {
-                            id: 'p1',
-                            url: 'https://images.unsplash.com/photo-1518199266791-5375a83190b7?auto=format&fit=crop&w=600&q=80',
-                            title: '第一次去海边',
-                            note: '那天风很大，但手牵得很紧。'
-                        },
-                        {
-                            id: 'p2',
-                            url: 'https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?auto=format&fit=crop&w=600&q=80',
-                            title: '街角甜品店',
-                            note: '你偷吃冰淇淋被我抓包啦！'
-                        }
-                    ]
-                }
-            ]
-        };
-
-        let currentAlbumId = null;
-        let currentPhotoIndex = null;
-
-        // Initialize Application
-        document.addEventListener('DOMContentLoaded', () => {
-            renderLoveDays();
-            renderCountdowns();
-            renderTodos();
-            renderWishes();
-            renderNotes();
-            renderAlbums();
-            init3DCosmosBg();
-        });
-
-        // Save State
-        function saveState(key) {
-            localStorage.setItem(key, JSON.stringify(loveData[key.replace('love_', '').replace('qq_', '')]));
-        }
-
-        // Render Love Days
-        function renderLoveDays() {
-            const start = new Date(loveData.startDate);
-            const today = new Date();
-            const diffTime = Math.abs(today - start);
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-            
-            document.getElementById('love-days-count').innerText = diffDays;
-            document.getElementById('days-badge').innerText = diffDays;
-            document.getElementById('love-start-date-text').innerText = `始于 ${loveData.startDate.replace(/-/g, '.')}`;
-            document.getElementById('input-love-date').value = loveData.startDate;
-        }
-
-        function saveLoveDate() {
-            const dateVal = document.getElementById('input-love-date').value;
-            if (dateVal) {
-                loveData.startDate = dateVal;
-                localStorage.setItem('love_start_date', dateVal);
-                renderLoveDays();
-                closeModal('modal-love-date');
-                showToast('✨ 恋爱起始日已更新！');
-            }
-        }
-
-        // Render Countdowns
-        function renderCountdowns() {
-            const container = document.getElementById('countdown-container');
-            container.innerHTML = '';
-
-            loveData.countdowns.forEach(item => {
-                const target = new Date(item.date);
-                const today = new Date();
-                const diffTime = target - today;
-                const diffDays = Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
-
-                const card = document.createElement('div');
-                card.className = 'bg-white/90 p-3.5 rounded-2xl border border-gray-100 flex items-center justify-between shadow-2xs';
-                card.innerHTML = `
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-xl bg-pinkWarm text-pinkAccent flex items-center justify-center text-lg">
-                            ${item.icon || '📌'}
-                        </div>
-                        <div>
-                            <div class="text-xs font-bold text-gray-800">${item.title}</div>
-                            <div class="text-[10px] text-textSub">${item.date}</div>
-                        </div>
+        <!-- Love Mini Tools -->
+        <section class="glass-card p-5">
+            <span class="text-xs font-bold tracking-widest text-pinkAccent uppercase block mb-1">Interactive Tools</span>
+            <h2 class="text-base font-bold text-gray-800 mb-4">恋爱体验小工具</h2>
+            <div class="grid grid-cols-3 gap-3">
+                <!-- Memo / Little Manager -->
+                <button onclick="openMemoManager()" class="bg-pinkWarm/60 hover:bg-pinkWarm p-3 rounded-2xl text-center transition flex flex-col items-center justify-center gap-1.5">
+                    <div class="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-pinkAccent shadow-sm text-lg">
+                        <i class="fa-solid fa-book-bookmark"></i>
                     </div>
-                    <div class="text-right flex items-center gap-3">
-                        <div>
-                            <span class="text-lg font-extrabold text-pinkAccent">${diffDays}</span>
-                            <span class="text-xs text-textSub"> 天</span>
-                        </div>
-                        <button onclick="deleteCountdown(${item.id})" class="text-gray-300 hover:text-red-400 text-xs pl-1">
-                            <i class="fa-solid fa-trash"></i>
-                        </button>
+                    <span class="text-xs font-bold text-gray-700">小管家</span>
+                </button>
+                <!-- Photo Gallery (恋爱日记) -->
+                <button onclick="openGallery()" class="bg-pinkWarm/60 hover:bg-pinkWarm p-3 rounded-2xl text-center transition flex flex-col items-center justify-center gap-1.5">
+                    <div class="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-pinkAccent shadow-sm text-lg">
+                        <i class="fa-solid fa-images"></i>
                     </div>
-                `;
-                container.appendChild(card);
-            });
-        }
-
-        function saveCountdown() {
-            const title = document.getElementById('input-cd-title').value;
-            const date = document.getElementById('input-cd-date').value;
-            if (title && date) {
-                loveData.countdowns.push({ id: Date.now(), title, date, icon: '✨' });
-                localStorage.setItem('love_countdowns', JSON.stringify(loveData.countdowns));
-                renderCountdowns();
-                closeModal('modal-add-countdown');
-                document.getElementById('input-cd-title').value = '';
-                showToast('🎉 新增期待成功！');
-            }
-        }
-
-        function deleteCountdown(id) {
-            loveData.countdowns = loveData.countdowns.filter(c => c.id !== id);
-            localStorage.setItem('love_countdowns', JSON.stringify(loveData.countdowns));
-            renderCountdowns();
-        }
-
-        // Render QQ Albums (QQ 相册功能)
-        function renderAlbums() {
-            const container = document.getElementById('album-grid-container');
-            container.innerHTML = '';
-
-            loveData.albums.forEach(album => {
-                const card = document.createElement('div');
-                card.className = 'bg-white p-2.5 rounded-2xl border border-gray-100 shadow-2xs cursor-pointer group hover:border-pinkWarm transition';
-                card.onclick = () => openAlbumDetail(album.id);
-                card.innerHTML = `
-                    <div class="h-32 rounded-xl overflow-hidden bg-gray-100 relative mb-2">
-                        <img src="${album.cover}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
-                        <span class="absolute bottom-2 right-2 bg-black/50 text-white text-[10px] px-2 py-0.5 rounded-full backdrop-blur-xs">
-                            ${album.photos.length} 张
-                        </span>
+                    <span class="text-xs font-bold text-gray-700">恋爱日记</span>
+                </button>
+                <!-- Pets (初一 & 彪彪) -->
+                <button onclick="openPetsModal()" class="bg-pinkWarm/60 hover:bg-pinkWarm p-3 rounded-2xl text-center transition flex flex-col items-center justify-center gap-1.5">
+                    <div class="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-pinkAccent shadow-sm text-lg">
+                        <i class="fa-solid fa-cat"></i>
                     </div>
-                    <div class="font-bold text-xs text-gray-800 truncate">${album.title}</div>
-                    <div class="text-[10px] text-textSub truncate mt-0.5">${album.desc || '暂无描述'}</div>
-                `;
-                container.appendChild(card);
-            });
-        }
+                    <span class="text-xs font-bold text-gray-700">宠物年糕</span>
+                </button>
+            </div>
+        </section>
 
-        function createNewAlbum() {
-            const title = document.getElementById('input-album-title').value;
-            const desc = document.getElementById('input-album-desc').value;
-
-            if (title) {
-                const newAlbum = {
-                    id: 'album-' + Date.now(),
-                    title: title,
-                    desc: desc,
-                    cover: 'https://images.unsplash.com/photo-1522673607200-164d1b6ce486?auto=format&fit=crop&w=600&q=80',
-                    photos: []
-                };
-                loveData.albums.unshift(newAlbum);
-                localStorage.setItem('qq_albums', JSON.stringify(loveData.albums));
-                renderAlbums();
-                closeModal('modal-add-album');
-                document.getElementById('input-album-title').value = '';
-                document.getElementById('input-album-desc').value = '';
-                showToast('📁 相册创建成功！');
-            }
-        }
-
-        function openAlbumDetail(albumId) {
-            currentAlbumId = albumId;
-            const album = loveData.albums.find(a => a.id === albumId);
-            if (!album) return;
-
-            document.getElementById('detail-album-title').innerText = album.title;
-            document.getElementById('detail-album-desc').innerText = album.desc || '暂无描述';
-
-            // Switch to Album Detail View Page
-            document.querySelectorAll('main').forEach(m => m.classList.add('hidden'));
-            document.getElementById('page-album-detail').classList.remove('hidden');
-
-            renderPhotosWithSpringPop(album.photos);
-        }
-
-        // 循序跳出照片展示 (Sequential Spring Pop)
-        function renderPhotosWithSpringPop(photos) {
-            const container = document.getElementById('photo-grid-container');
-            container.innerHTML = '';
-
-            if (photos.length === 0) {
-                container.innerHTML = `
-                    <div class="col-span-2 py-12 text-center text-xs text-textSub">
-                        相册空空如也，快点击右上角“上传照片”吧 📷
-                    </div>
-                `;
-                return;
-            }
-
-            photos.forEach((photo, idx) => {
-                const item = document.createElement('div');
-                item.className = 'bg-white p-2 rounded-2xl shadow-2xs border border-gray-100 cursor-pointer pop-sequence-item';
-                item.style.animationDelay = `${idx * 0.12}s`;
-                item.onclick = () => openPhotoViewer(idx);
-                item.innerHTML = `
-                    <div class="h-32 rounded-xl overflow-hidden bg-gray-50 mb-2 relative">
-                        <img src="${photo.url}" class="w-full h-full object-cover">
-                    </div>
-                    <div class="text-xs font-bold text-gray-800 truncate">${photo.title || '无标题照片'}</div>
-                    <div class="text-[10px] text-textSub truncate">${photo.note || '点击添加照片备注...'}</div>
-                `;
-                container.appendChild(item);
-            });
-        }
-
-        function backToAlbums() {
-            document.querySelectorAll('main').forEach(m => m.classList.add('hidden'));
-            document.getElementById('page-albums').classList.remove('hidden');
-        }
-
-        function triggerBatchUpload() {
-            document.getElementById('batch-photo-input').click();
-        }
-
-        // 批量上传照片处理 (Read Files as Base64)
-        function handleBatchPhotoUpload(e) {
-            const files = e.target.files;
-            if (!files || files.length === 0) return;
-
-            const album = loveData.albums.find(a => a.id === currentAlbumId);
-            if (!album) return;
-
-            let loadedCount = 0;
-            Array.from(files).forEach(file => {
-                const reader = new FileReader();
-                reader.onload = function(evt) {
-                    const newPhoto = {
-                        id: 'photo-' + Date.now() + Math.random(),
-                        url: evt.target.result,
-                        title: file.name.split('.')[0] || '甜蜜瞬影',
-                        note: '记于 ' + new Date().toLocaleDateString()
-                    };
-                    album.photos.unshift(newPhoto);
-                    // Update cover if first photo
-                    if (!album.cover || album.cover.includes('unsplash')) {
-                        album.cover = newPhoto.url;
-                    }
-
-                    loadedCount++;
-                    if (loadedCount === files.length) {
-                        localStorage.setItem('qq_albums', JSON.stringify(loveData.albums));
-                        renderPhotosWithSpringPop(album.photos);
-                        renderAlbums();
-                        showToast(`🖼️ 已成功添加 ${loadedCount} 张照片！`);
-                    }
-                };
-                reader.readAsDataURL(file);
-            });
-        }
-
-        // 浏览高清照片与编辑备注
-        function openPhotoViewer(index) {
-            const album = loveData.albums.find(a => a.id === currentAlbumId);
-            if (!album || !album.photos[index]) return;
-
-            currentPhotoIndex = index;
-            const photo = album.photos[index];
-
-            document.getElementById('viewer-photo-index').innerText = `${index + 1} / ${album.photos.length}`;
-            document.getElementById('viewer-image').src = photo.url;
-            document.getElementById('viewer-photo-title').value = photo.title || '';
-            document.getElementById('viewer-photo-note').value = photo.note || '';
-
-            openModal('modal-photo-viewer');
-        }
-
-        function savePhotoRemark() {
-            const album = loveData.albums.find(a => a.id === currentAlbumId);
-            if (!album || currentPhotoIndex === null) return;
-
-            const photo = album.photos[currentPhotoIndex];
-            photo.title = document.getElementById('viewer-photo-title').value;
-            photo.note = document.getElementById('viewer-photo-note').value;
-
-            localStorage.setItem('qq_albums', JSON.stringify(loveData.albums));
-            renderPhotosWithSpringPop(album.photos);
-            closeModal('modal-photo-viewer');
-            showToast('📝 照片备注保存成功！');
-        }
-
-        // Todos, Wishes & Notes Helper Functions
-        function renderTodos() {
-            const list = document.getElementById('todo-list');
-            list.innerHTML = '';
-            loveData.todos.forEach(t => {
-                const item = document.createElement('div');
-                item.className = `p-1.5 rounded-lg flex items-center justify-between ${t.done ? 'line-through text-gray-300' : 'text-gray-700'}`;
-                item.innerHTML = `
-                    <span onclick="toggleTodo(${t.id})" class="cursor-pointer">· ${t.text}</span>
-                    <i onclick="toggleTodo(${t.id})" class="fa-regular ${t.done ? 'fa-circle-check text-pinkAccent' : 'fa-circle text-gray-200'} cursor-pointer"></i>
-                `;
-                list.appendChild(item);
-            });
-        }
-
-        function toggleTodo(id) {
-            const t = loveData.todos.find(x => x.id === id);
-            if (t) { t.done = !t.done; saveState('love_todos'); renderTodos(); }
-        }
-
-        function addTodoPrompt() {
-            const txt = prompt('输入新待办内容：');
-            if (txt) {
-                loveData.todos.push({ id: Date.now(), text: txt, done: false });
-                saveState('love_todos');
-                renderTodos();
-            }
-        }
-
-        function renderWishes() {
-            const container = document.getElementById('wishes-container');
-            container.innerHTML = '';
-            loveData.wishes.forEach(w => {
-                const item = document.createElement('div');
-                item.className = 'bg-white p-3 rounded-2xl border border-gray-100 flex items-center justify-between text-xs';
-                item.innerHTML = `
-                    <div class="flex items-center gap-2">
-                        <span onclick="toggleWish(${w.id})" class="cursor-pointer ${w.done ? 'line-through text-gray-300' : 'text-gray-800 font-medium'}">
-                            ${w.done ? '✨' : '⭐'} ${w.text}
-                        </span>
-                    </div>
-                    <span class="${w.done ? 'bg-greenWarm text-green-600' : 'bg-pinkWarm text-pinkAccent'} px-2.5 py-1 rounded-full text-[10px]">
-                        ${w.done ? '已实现' : '小未完'}
-                    </span>
-                `;
-                container.appendChild(item);
-            });
-        }
-
-        function toggleWish(id) {
-            const w = loveData.wishes.find(x => x.id === id);
-            if (w) { w.done = !w.done; saveState('love_wishes'); renderWishes(); }
-        }
-
-        function addWishPrompt() {
-            const txt = prompt('许下你们的新心愿：');
-            if (txt) {
-                loveData.wishes.push({ id: Date.now(), text: txt, done: false });
-                saveState('love_wishes');
-                renderWishes();
-            }
-        }
-
-        function renderNotes() {
-            const container = document.getElementById('notes-container');
-            container.innerHTML = '';
-            loveData.notes.forEach(n => {
-                const card = document.createElement('div');
-                card.className = 'bg-yellowWarm/40 p-3.5 rounded-2xl border border-yellow-100 text-xs space-y-1';
-                card.innerHTML = `
-                    <p class="text-gray-800 font-medium">${n.content}</p>
-                    <p class="text-[9px] text-textSub text-right">${n.time}</p>
-                `;
-                container.appendChild(card);
-            });
-        }
-
-        function saveNote() {
-            const txt = document.getElementById('input-note-content').value;
-            if (txt) {
-                const date = new Date();
-                const timeStr = `${date.getMonth() + 1}-${date.getDate()} ${date.getHours()}:${String(date.getMinutes()).padStart(2, '0')}`;
-                loveData.notes.unshift({ id: Date.now(), content: txt, time: timeStr });
-                saveState('love_notes');
-                renderNotes();
-                closeModal('modal-add-note');
-                document.getElementById('input-note-content').value = '';
-                showToast('💌 纸条已贴上！');
-            }
-        }
-
-        function toggleHabit(btn) {
-            const icon = btn.querySelector('i');
-            if (icon.classList.contains('fa-regular')) {
-                icon.className = 'fa-solid fa-circle-check text-pinkAccent';
-                btn.classList.add('bg-pinkWarm/30');
-            } else {
-                icon.className = 'fa-regular fa-circle-check text-gray-300';
-                btn.classList.remove('bg-pinkWarm/30');
-            }
-            updateHabitProgress();
-        }
-
-        function updateHabitProgress() {
-            const done = document.querySelectorAll('.habit-btn i.fa-solid').length;
-            document.getElementById('habit-progress').innerHTML = `${done} <span class="text-xs font-normal text-textSub">/ 3</span>`;
-        }
-
-        // Navigation Switcher
-        function switchTab(tab) {
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById(`tab-${tab}`).classList.add('active');
-
-            document.querySelectorAll('main').forEach(m => m.classList.add('hidden'));
-            document.getElementById(`page-${tab}`).classList.remove('hidden');
-        }
-
-        // Modal Helpers
-        function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
-        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
-
-        // Toast Helper
-        function showToast(msg) {
-            const toast = document.getElementById('toast-msg');
-            toast.innerText = msg;
-            toast.classList.remove('opacity-0', 'pointer-events-none');
-            setTimeout(() => {
-                toast.classList.add('opacity-0', 'pointer-events-none');
-            }, 2500);
-        }
-
-        // Three.js 3D Hearts Cosmos Background
-        function init3DCosmosBg() {
-            const canvas = document.getElementById('webgl-bg');
-            const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
-            renderer.setSize(window.innerWidth, window.innerHeight);
-
-            const scene = new THREE.Scene();
-            const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-            camera.position.z = 30;
-
-            const count = 220;
-            const geometry = new THREE.BufferGeometry();
-            const pos = new Float32Array(count * 3);
-            const cols = new Float32Array(count * 3);
-
-            for (let i = 0; i < count * 3; i += 3) {
-                pos[i] = (Math.random() - 0.5) * 60;
-                pos[i + 1] = (Math.random() - 0.5) * 60;
-                pos[i + 2] = (Math.random() - 0.5) * 30;
-
-                cols[i] = 1.0;
-                cols[i + 1] = 0.65 + Math.random() * 0.3;
-                cols[i + 2] = 0.75;
-            }
-
-            geometry.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-            geometry.setAttribute('color', new THREE.BufferAttribute(cols, 3));
-
-            const material = new THREE.PointsMaterial({
-                size: 0.85,
-                vertexColors: true,
-                transparent: true,
-                opacity: 0.65
-            });
-
-            const points = new THREE.Points(geometry, material);
-            scene.add(points);
-
-            function animate() {
-                requestAnimationFrame(animate);
-                points.rotation.y += 0.0012;
-                points.rotation.x += 0.0006;
-                renderer.render(scene, camera);
-            }
-            animate();
-
-            window.addEventListener('resize', () => {
-                camera.aspect = window.innerWidth / window.innerHeight;
-                camera.updateProjectionMatrix();
-                renderer.setSize(window.innerWidth, window.innerHeight);
-            });
-        }
-    </script>
-</body>
-</html>
+        <!-- Wishlist & Daily Records -->
+        <div class="grid grid-cols-2 gap-4">
+            <!-- Wishlist -->
+            <section class="glass-card
