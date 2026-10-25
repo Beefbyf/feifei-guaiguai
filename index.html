@@ -17,6 +17,10 @@
   <!-- Three.js for 3D Cosmos -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
+  <!-- Firebase SDKs for Realtime Cloud Sync -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+
   <script>
     tailwind.config = {
       theme: {
@@ -94,19 +98,6 @@
       box-shadow: 0 4px 12px rgba(255, 123, 156, 0.35);
     }
 
-    .burst-heart {
-      position: fixed;
-      pointer-events: none;
-      z-index: 9999;
-      animation: floatUpFade 1.5s ease-out forwards;
-    }
-    
-    @keyframes floatUpFade {
-      0% { transform: translate(-50%, -50%) scale(0.5) rotate(0deg); opacity: 1; }
-      50% { transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(1.4) rotate(var(--rot)); opacity: 0.9; }
-      100% { transform: translate(calc(-50% + var(--dx) * 1.5), calc(-50% - 100px)) scale(1.8) rotate(var(--rot)); opacity: 0; }
-    }
-
     .modal-backdrop {
       background: rgba(45, 41, 38, 0.45);
       backdrop-filter: blur(8px);
@@ -141,7 +132,7 @@
         </button>
         <div>
           <h1 class="text-sm font-bold text-darkText tracking-tight">飞飞与乖乖</h1>
-          <p class="text-[10px] text-subText">恋爱宇宙 💖 极速流畅</p>
+          <p class="text-[10px] text-subText" id="syncStatusText">☁️ 正在连接云端...</p>
         </div>
       </div>
       <nav class="flex gap-1 overflow-x-auto text-xs text-subText pr-1">
@@ -246,7 +237,7 @@
         </div>
       </section>
 
-      <!-- 3D Photo Cosmos Wall (回归!) -->
+      <!-- 3D Photo Cosmos Wall -->
       <section class="bg-slate-950 rounded-3xl p-4 shadow-soft text-white relative overflow-hidden">
         <div class="flex justify-between items-center mb-2 z-10 relative">
           <div>
@@ -440,20 +431,49 @@
   <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-darkText/90 text-white text-xs px-4 py-2 rounded-full shadow-lg opacity-0 pointer-events-none transition-opacity duration-300"></div>
 
   <script>
-    /* ================= LOCAL STORAGE STORE (极速秒开) ================= */
-    let store = JSON.parse(localStorage.getItem('feifei_love_universe')) || {
+    /* ================= FIREBASE REALTIME CLOUD SYNC ================= */
+    const firebaseConfig = {
+      databaseURL: "https://feifei-guaiguai-default-rtdb.firebaseio.com/"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const dbRef = db.ref('loveUniverseStore');
+
+    let store = {
       startDate: '2026-10-15',
-      countdowns: [{ id: 1, title: '我们的第一个月纪念日', date: '2026-11-15' }],
-      habits: [{ id: 1, text: '💧 提醒多喝水', done: false }],
-      todos: [{ id: 1, text: '去公园散步拍落叶', done: false }],
-      memos: [{ id: 1, text: '记得买奶茶~' }],
-      wishes: [{ id: 1, text: '一起去看海', done: false }],
-      dailies: [{ id: 1, text: '今天也是超级想你的一天', time: '10-24 12:00' }],
-      albums: [{ id: 'album-1', title: '我们的日常合照', desc: '温暖回忆', cover: '', photos: [] }]
+      countdowns: [],
+      habits: [],
+      todos: [],
+      memos: [],
+      wishes: [],
+      dailies: [],
+      albums: []
     };
 
+    let isRemoteUpdate = false;
+
+    // Listen for real-time changes from cloud (both phones will sync automatically)
+    dbRef.on('value', (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        store = data;
+        isRemoteUpdate = true;
+        renderAll();
+        isRemoteUpdate = false;
+        document.getElementById('syncStatusText').innerText = '☁️ 云端双人实时同步 ✨';
+      } else {
+        saveData(); // Init default data if cloud is empty
+      }
+    }, () => {
+      document.getElementById('syncStatusText').innerText = '⚠️ 正在使用离线模式';
+    });
+
     function saveData() {
-      localStorage.setItem('feifei_love_universe', JSON.stringify(store));
+      if (isRemoteUpdate) return;
+      dbRef.set(store).then(() => {
+        document.getElementById('syncStatusText').innerText = '☁️ 同步成功 ✨';
+        setTimeout(() => { document.getElementById('syncStatusText').innerText = '☁️ 云端双人实时同步 ✨'; }, 1200);
+      });
       renderAll();
     }
 
@@ -467,7 +487,7 @@
       renderDailies();
       renderAlbums();
       if (currentAlbumId) {
-        const album = store.albums.find(a => a.id === currentAlbumId);
+        const album = (store.albums || []).find(a => a.id === currentAlbumId);
         if (album) {
           document.getElementById('detail-album-title').innerText = album.title;
           document.getElementById('detail-album-desc').innerText = album.desc || '';
@@ -492,8 +512,8 @@
       const val = document.getElementById('input-love-date').value;
       if (val) {
         store.startDate = val;
-        saveData();
         closeModal('modal-love-date');
+        saveData();
         showToast('✨ 恋爱起始日已更新！');
       }
     }
@@ -573,33 +593,53 @@
     function addCountdown() {
       const title = document.getElementById('countdownTitle').value.trim();
       const date = document.getElementById('countdownDate').value;
-      if (title && date) { store.countdowns.push({ id: Date.now(), title, date }); closeModal('modal-add-countdown'); saveData(); }
+      if (title && date) {
+        if (!store.countdowns) store.countdowns = [];
+        store.countdowns.push({ id: Date.now(), title, date });
+        closeModal('modal-add-countdown'); saveData();
+      }
     }
     function deleteCountdown(id) { store.countdowns = store.countdowns.filter(c => c.id !== id); saveData(); }
 
     function addHabit() {
       const text = document.getElementById('habitTitle').value.trim();
-      if (text) { store.habits.push({ id: Date.now(), text, done: false }); closeModal('addHabitModal'); saveData(); }
+      if (text) {
+        if (!store.habits) store.habits = [];
+        store.habits.push({ id: Date.now(), text, done: false });
+        closeModal('addHabitModal'); saveData();
+      }
     }
     function toggleHabit(id) { store.habits = store.habits.map(h => h.id === id ? { ...h, done: !h.done } : h); saveData(); }
     function deleteHabit(id) { store.habits = store.habits.filter(h => h.id !== id); saveData(); }
 
     function addTodo() {
       const text = document.getElementById('todoTitle').value.trim();
-      if (text) { store.todos.push({ id: Date.now(), text, done: false }); closeModal('addTodoModal'); saveData(); }
+      if (text) {
+        if (!store.todos) store.todos = [];
+        store.todos.push({ id: Date.now(), text, done: false });
+        closeModal('addTodoModal'); saveData();
+      }
     }
     function toggleTodo(id) { store.todos = store.todos.map(t => t.id === id ? { ...t, done: !t.done } : t); saveData(); }
     function deleteTodo(id) { store.todos = store.todos.filter(t => t.id !== id); saveData(); }
 
     function addMemo() {
       const text = document.getElementById('newMemoInput').value.trim();
-      if (text) { store.memos.push({ id: Date.now(), text }); document.getElementById('newMemoInput').value = ''; saveData(); }
+      if (text) {
+        if (!store.memos) store.memos = [];
+        store.memos.push({ id: Date.now(), text });
+        document.getElementById('newMemoInput').value = ''; saveData();
+      }
     }
     function deleteMemo(id) { store.memos = store.memos.filter(m => m.id !== id); saveData(); }
 
     function addWish() {
       const text = document.getElementById('wishTitle').value.trim();
-      if (text) { store.wishes.push({ id: Date.now(), text, done: false }); closeModal('addWishModal'); saveData(); }
+      if (text) {
+        if (!store.wishes) store.wishes = [];
+        store.wishes.push({ id: Date.now(), text, done: false });
+        closeModal('addWishModal'); saveData();
+      }
     }
     function toggleWish(id) { store.wishes = store.wishes.map(w => w.id === id ? { ...w, done: !w.done } : w); saveData(); }
     function deleteWish(id) { store.wishes = store.wishes.filter(w => w.id !== id); saveData(); }
@@ -608,6 +648,7 @@
       const text = document.getElementById('dailyContent').value.trim();
       if (text) {
         const now = new Date();
+        if (!store.dailies) store.dailies = [];
         store.dailies.unshift({ id: Date.now(), text, time: `${now.getMonth()+1}-${now.getDate()} ${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}` });
         closeModal('addDailyModal'); saveData();
       }
@@ -622,7 +663,7 @@
       document.getElementById('petDialog').innerText = petQuotes[name][Math.floor(Math.random() * petQuotes[name].length)];
     }
 
-    /* ALBUMS */
+    /* ALBUMS & VIDEOS */
     let currentAlbumId = null;
     function renderAlbums() {
       document.getElementById('album-grid-container').innerHTML = (store.albums || []).map(album => `
@@ -640,6 +681,7 @@
       const title = document.getElementById('input-album-title').value.trim();
       const desc = document.getElementById('input-album-desc').value.trim();
       if (title) {
+        if (!store.albums) store.albums = [];
         store.albums.unshift({ id: 'album-' + Date.now(), title, desc, cover: '', photos: [] });
         document.getElementById('input-album-title').value = '';
         document.getElementById('input-album-desc').value = '';
@@ -649,7 +691,7 @@
 
     function openAlbumDetail(albumId) {
       currentAlbumId = albumId;
-      const album = store.albums.find(a => a.id === albumId);
+      const album = (store.albums || []).find(a => a.id === albumId);
       if (!album) return;
       document.getElementById('detail-album-title').innerText = album.title;
       document.getElementById('detail-album-desc').innerText = album.desc || '暂无描述';
@@ -660,7 +702,7 @@
 
     function renderPhotos(photos) {
       const container = document.getElementById('photo-grid-container');
-      if (photos.length === 0) { container.innerHTML = `<div class="col-span-2 py-12 text-center text-xs text-subText">相册空空如也，点击上传 📷</div>`; return; }
+      if (photos.length === 0) { container.innerHTML = `<div class="col-span-2 py-12 text-center text-xs text-subText">相册空空如也，点击上传照片或视频 📷</div>`; return; }
       container.innerHTML = photos.map((p, idx) => {
         const isVideo = p.type === 'video' || (p.url && p.url.startsWith('data:video'));
         return `
@@ -684,7 +726,7 @@
     }
 
     function openEditAlbumModal() {
-      const album = store.albums.find(a => a.id === currentAlbumId);
+      const album = (store.albums || []).find(a => a.id === currentAlbumId);
       if (!album) return;
       document.getElementById('edit-album-title').value = album.title;
       document.getElementById('edit-album-desc').value = album.desc || '';
@@ -694,13 +736,13 @@
     function saveEditedAlbum() {
       const title = document.getElementById('edit-album-title').value.trim();
       const desc = document.getElementById('edit-album-desc').value.trim();
-      const album = store.albums.find(a => a.id === currentAlbumId);
+      const album = (store.albums || []).find(a => a.id === currentAlbumId);
       if (album && title) { album.title = title; album.desc = desc; closeModal('modal-edit-album'); saveData(); showToast('✨ 修改成功！'); }
     }
 
     function deleteCurrentAlbum() {
       if (confirm('确定要删除这个相册吗？')) {
-        store.albums = store.albums.filter(a => a.id !== currentAlbumId);
+        store.albums = (store.albums || []).filter(a => a.id !== currentAlbumId);
         saveData(); backToAlbums(); showToast('🗑️ 相册已删除');
       }
     }
@@ -710,7 +752,7 @@
     function handleBatchMediaUpload(e) {
       const files = e.target.files;
       if (!files || files.length === 0) return;
-      const album = store.albums.find(a => a.id === currentAlbumId);
+      const album = (store.albums || []).find(a => a.id === currentAlbumId);
       if (!album) return;
 
       Array.from(files).forEach(file => {
@@ -729,9 +771,9 @@
     }
 
     function deleteMediaItem(itemId) {
-      const album = store.albums.find(a => a.id === currentAlbumId);
+      const album = (store.albums || []).find(a => a.id === currentAlbumId);
       if (!album) return;
-      album.photos = album.photos.filter(p => p.id !== itemId);
+      album.photos = (album.photos || []).filter(p => p.id !== itemId);
       saveData(); renderPhotos(album.photos); showToast('🗑️ 已删除');
     }
 
@@ -811,12 +853,9 @@
       animate();
     }
 
-    // 初始化背景与页面
     window.onload = function() {
-      renderAll();
       init3DCosmos();
 
-      // 3D背景星空
       const canvas = document.getElementById('webgl-bg');
       const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
       renderer.setSize(window.innerWidth, window.innerHeight);
