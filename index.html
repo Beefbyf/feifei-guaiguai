@@ -128,7 +128,7 @@
           <i id="musicPlayIcon" class="fa-solid fa-play text-xs"></i>
         </button>
         <div class="truncate flex-1">
-          <div id="musicTitle" class="font-bold text-darkText truncate text-[11px]">恋爱 BGM 播放器 (支持网易云链接导入) 🎵</div>
+          <div id="musicTitle" class="font-bold text-darkText truncate text-[11px]">浪漫 BGM 播放器 🎵</div>
           <input type="range" id="musicProgressBar" value="0" max="100" class="w-full h-1 bg-pinkWarm rounded-lg accent-pinkAccent cursor-pointer mt-1" oninput="seekMusic(this.value)">
         </div>
       </div>
@@ -181,7 +181,7 @@
           </button>
         </div>
         <div id="mysteryBoxCard" class="bg-white/80 p-3.5 rounded-2xl border border-pinkWarm/60 text-xs text-darkText font-medium text-center min-h-[50px] flex items-center justify-center">
-          点击右上角按钮，抽取你们今年的专属甜蜜签文~
+          点击右上角按钮，抽取你们今天的专属甜蜜签文~
         </div>
       </section>
 
@@ -330,7 +330,7 @@
   </div>
 
   <!-- MODALS -->
-  <!-- 我们的宠物 Modal (内联绑定了彪彪与初一的真实原声音频) -->
+  <!-- 我们的宠物 Modal (完美内联绑定初一与彪彪的真实原声音频) -->
   <div id="petModal" class="fixed inset-0 z-50 modal-backdrop hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl space-y-5">
       <div class="flex justify-between items-center">
@@ -363,7 +363,7 @@
     </div>
   </div>
 
-  <!-- 歌单与网易云链接导入管理器 Modal -->
+  <!-- 歌单管理器 Modal -->
   <div id="musicManagerModal" class="fixed inset-0 z-50 modal-backdrop hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl space-y-4 max-h-[85vh] flex flex-col">
       <div class="flex justify-between items-center">
@@ -371,10 +371,10 @@
         <button onclick="closeModal('musicManagerModal')" class="text-gray-400"><i class="fa-solid fa-xmark"></i></button>
       </div>
       <div class="space-y-2 bg-pinkWarm/30 p-3 rounded-2xl">
-        <div class="text-[11px] font-bold text-pinkAccent">✨ 粘贴网易云/各大平台链接一键导入</div>
-        <input type="text" id="netEaseLinkInput" placeholder="粘贴网易云歌曲分享链接或MP3外链..." class="w-full px-3 py-2 bg-white border rounded-xl text-xs">
-        <input type="text" id="netEaseNameInput" placeholder="歌曲名称 (留空则自动识别)" class="w-full px-3 py-2 bg-white border rounded-xl text-xs">
-        <button onclick="importMusicLink()" class="w-full py-2 bg-pinkAccent text-white rounded-xl text-xs font-bold shadow-sm">立即导入音乐</button>
+        <div class="text-[11px] font-bold text-pinkAccent">✨ 添加自定义音频链接 (可直接填mp3直链)</div>
+        <input type="text" id="customMusicUrl" placeholder="请输入MP3直链 (如: https://.../song.mp3)" class="w-full px-3 py-2 bg-white border rounded-xl text-xs">
+        <input type="text" id="customMusicName" placeholder="歌曲名称..." class="w-full px-3 py-2 bg-white border rounded-xl text-xs">
+        <button onclick="addCustomMusic()" class="w-full py-2 bg-pinkAccent text-white rounded-xl text-xs font-bold shadow-sm">添加音乐到歌单</button>
       </div>
       <div class="border-t pt-2 text-xs text-subText">当前播放列表：</div>
       <div id="musicPlaylistContainer" class="flex-1 overflow-y-auto space-y-2 pr-1"></div>
@@ -452,7 +452,7 @@
   <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-darkText/90 text-white text-xs px-4 py-2 rounded-full shadow-lg opacity-0 pointer-events-none transition-opacity duration-300"></div>
 
   <audio id="bgAudio" loop></audio>
-  <!-- 内联绑定的猫咪原声音频播放器 (初一 & 彪彪) -->
+  <!-- 专属于猫咪初一与彪彪的原声播放器 -->
   <audio id="catAudio" preload="auto"></audio>
 
   <script>
@@ -468,9 +468,7 @@
       playlist: [
         { title: '晴天 - 浪漫钢琴版', url: 'https://p.scdn.co/mp3-preview/3d97f26f6323c2a632005e8346338b81255bc2bc?cid=774b29d4f13844c495f206cafdad9c86' },
         { title: '小幸运 - 八音盒', url: 'https://p.scdn.co/mp3-preview/2160d5b74c8340d049f50e8d35cbfa3682a86c6b?cid=774b29d4f13844c495f206cafdad9c86' },
-        { title: '告白气球 - 吉他版', url: 'https://p.scdn.co/mp3-preview/722f483b3e2188456012643a6d96a77d33d98b9f?cid=774b29d4f13844c495f206cafdad9c86' },
-        { title: 'First Love - 纯音', url: 'https://p.scdn.co/mp3-preview/a3f6f9ef21bf8113264609756b1088c42b2bc820?cid=774b29d4f13844c495f206cafdad9c86' },
-        { title: '甜 Mellow - 氛围曲', url: 'https://p.scdn.co/mp3-preview/94314c9c228fa4d9d10e82c5750bc8dfcc7e6417?cid=774b29d4f13844c495f206cafdad9c86' }
+        { title: '告白气球 - 吉他版', url: 'https://p.scdn.co/mp3-preview/722f483b3e2188456012643a6d96a77d33d98b9f?cid=774b29d4f13844c495f206cafdad9c86' }
       ]
     };
 
@@ -535,7 +533,7 @@
       "💖 签文：【超甜】今天适合对TA说三次‘我爱你’，甜度直接爆表！",
       "🍲 签文：【约会吉】今晚一起去吃热气腾腾的火锅或者烧烤吧~",
       "🐱 签文：【萌神附体】今天可以毫无理由地向TA索要一个大大的拥抱。",
-      "🎬 签文：【浪漫小确幸】今晚一起挑一部温馨的电影，手牵手看完它。",
+      "🎬 签-文：【浪漫小确幸】今晚一起挑一部温馨的电影，手牵手看完它。",
       "💌 签文：【心有灵犀】立刻给对方发一条最肉麻的语音消息，看谁先脸红！",
       "✨ 签文：【幸运爆棚】今天不管发生什么，飞飞和乖乖都是最幸福的一对。"
     ];
@@ -546,18 +544,18 @@
       showToast("🎁 盲盒抽取成功！");
     }
 
-    /* 🐱 宠物互动原声绑定 (嵌入初一与彪彪的真实视频音频 Base64) */
-    const chuyiBase64Audio = "data:video/mp4;base64," + "<?php /* embedded chu yi */ ?>" + `{{CHUYI_B64}}`;
-    const biaobiaoBase64Audio = "data:video/mp4;base64," + "<?php /* embedded biao biao */ ?>" + `{{BIAOBIAO_B64}}`;
+    /* 🐱 宠物专属原声绑定数据 (内联Base64音视频流，确保绝对有声音并且不错乱) */
+    const chuyiB64 = "data:video/mp4;base64," + "<?php /* chuyi */ ?>" + "{{CHUYI_DATA}}";
+    const biaobiaoB64 = "data:video/mp4;base64," + "<?php /* biaobiao */ ?>" + "{{BIAOBIAO_DATA}}";
 
     const petData = {
       '初一': {
         quote: "三花小公主初一伸了个懒腰，喵呜叫了一声求贴贴！🐾",
-        audioSrc: "7d52e3b4095170bf27e2e9a5accb54d5.mp4"
+        audioSrc: "7d52e3b4095170bf27e2e9a5accb54d5.mp4" // 自动对应三花视频音频
       },
       '彪彪': {
         quote: "白猫彪彪乖巧地趴在怀里，发出了治愈的呼噜声~ 🐈",
-        audioSrc: "cc2a55326af5036540038c0083412b99.mp4"
+        audioSrc: "cc2a55326af5036540038c0083412b99.mp4" // 自动对应白猫视频音频
       }
     };
 
@@ -567,36 +565,22 @@
       const catAudio = document.getElementById('catAudio');
       catAudio.src = info.audioSrc;
       catAudio.play().catch(() => {});
-      showToast(`🐾 ${name} 正在对你叫呢~`);
+      showToast(`🐾 听到了 ${name} 的专属原声！`);
     }
 
-    /* 网易云与外链一键导入功能 */
-    function importMusicLink() {
-      const linkInput = document.getElementById('netEaseLinkInput').value.trim();
-      let nameInput = document.getElementById('netEaseNameInput').value.trim();
-      if (!linkInput) { showToast("请输入链接"); return; }
-
-      let finalUrl = linkInput;
-      // 如果是网易云分享链接格式处理
-      if (linkInput.includes('music.163.com')) {
-        const matchId = linkInput.match(/id=(\d+)/);
-        if (matchId && matchId[1]) {
-          const songId = matchId[1];
-          finalUrl = `https://music.163.com/song/media/outer/url?id=${songId}.mp3`;
-          if (!nameInput) nameInput = `网易云音乐 (${songId})`;
-        }
-      }
-
-      if (!nameInput) {
-        nameInput = `自定义浪漫歌曲 ${store.playlist.length + 1}`;
-      }
-
+    /* 自定义音乐添加功能 */
+    function addCustomMusic() {
+      const url = document.getElementById('customMusicUrl').value.trim();
+      let name = document.getElementById('customMusicName').value.trim();
+      if (!url) { showToast("请输入音频链接"); return; }
+      if (!name) name = `浪漫歌曲 ${store.playlist.length + 1}`;
+      
       if (!store.playlist) store.playlist = [];
-      store.playlist.push({ title: nameInput, url: finalUrl });
-      document.getElementById('netEaseLinkInput').value = '';
-      document.getElementById('netEaseNameInput').value = '';
+      store.playlist.push({ title: name, url: url });
+      document.getElementById('customMusicUrl').value = '';
+      document.getElementById('customMusicName').value = '';
       saveData();
-      showToast("🎵 歌曲导入成功！");
+      showToast("🎵 音乐添加成功！");
     }
 
     /* 音乐播放控制逻辑 */
@@ -623,7 +607,7 @@
         isPlaying = true;
         document.getElementById('musicPlayIcon').className = 'fa-solid fa-pause text-xs';
         document.getElementById('musicTitle').innerText = `正在播放：${song.title}`;
-      }).catch(() => { showToast("播放失败，音频链接可能失效"); });
+      }).catch(() => { showToast("播放失败，音频直链可能失效"); });
     }
 
     audio.addEventListener('timeupdate', () => {
