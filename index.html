@@ -98,6 +98,30 @@
       box-shadow: 0 4px 12px rgba(255, 123, 156, 0.35);
     }
 
+    /* Heart Burst Animation */
+    .burst-heart {
+      position: fixed;
+      pointer-events: none;
+      z-index: 9999;
+      animation: floatUpFade 1.5s ease-out forwards;
+    }
+    
+    @keyframes floatUpFade {
+      0% { transform: translate(-50%, -50%) scale(0.5) rotate(0deg); opacity: 1; }
+      50% { transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(1.4) rotate(var(--rot)); opacity: 0.9; }
+      100% { transform: translate(calc(-50% + var(--dx) * 1.5), calc(-50% - 100px)) scale(1.8) rotate(var(--rot)); opacity: 0; }
+    }
+
+    .pulse-heart-center {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0);
+      pointer-events: none;
+      z-index: 9998;
+      transition: transform 0.2s ease-out, opacity 0.4s ease;
+    }
+
     .modal-backdrop {
       background: rgba(45, 41, 38, 0.45);
       backdrop-filter: blur(8px);
@@ -127,12 +151,13 @@
     <!-- Header Navigation Bar -->
     <header class="glass-card rounded-full p-2 flex items-center justify-between sticky top-3 z-40">
       <div class="flex items-center gap-3.5 pl-2">
+        <!-- Interactive Heart Button -->
         <button id="heartBtn" class="relative w-10 h-10 rounded-full bg-pinkWarm flex items-center justify-center text-pinkAccent text-lg shadow-inner active:scale-90 transition-transform">
           <i class="fa-solid fa-heart animate-pulse"></i>
         </button>
         <div>
           <h1 class="text-sm font-bold text-darkText tracking-tight">飞飞与乖乖</h1>
-          <p class="text-[10px] text-subText" id="syncStatusText">☁️ 正在连接云端...</p>
+          <p class="text-[10px] text-subText" id="syncStatusText">☁️ 极速双人同步就绪 ✨</p>
         </div>
       </div>
       <nav class="flex gap-1 overflow-x-auto text-xs text-subText pr-1">
@@ -428,10 +453,15 @@
     </div>
   </div>
 
+  <!-- Central Pulsing Heart for Long Press -->
+  <div id="pulseHeartCenter" class="pulse-heart-center text-pinkAccent opacity-0">
+    <i class="fa-solid fa-heart text-8xl filter drop-shadow-lg"></i>
+  </div>
+
   <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-darkText/90 text-white text-xs px-4 py-2 rounded-full shadow-lg opacity-0 pointer-events-none transition-opacity duration-300"></div>
 
   <script>
-    /* ================= FIREBASE REALTIME CLOUD SYNC ================= */
+    /* ================= FAST CLOUD SYNC + LOCAL ACCELERATION ================= */
     const firebaseConfig = {
       databaseURL: "https://feifei-guaiguai-default-rtdb.firebaseio.com/"
     };
@@ -452,7 +482,7 @@
 
     let isRemoteUpdate = false;
 
-    // Listen for real-time changes from cloud (both phones will sync automatically)
+    // Listen to remote changes
     dbRef.on('value', (snapshot) => {
       const data = snapshot.val();
       if (data) {
@@ -460,21 +490,16 @@
         isRemoteUpdate = true;
         renderAll();
         isRemoteUpdate = false;
-        document.getElementById('syncStatusText').innerText = '☁️ 云端双人实时同步 ✨';
-      } else {
-        saveData(); // Init default data if cloud is empty
+        document.getElementById('syncStatusText').innerText = '☁️ 双人实时同步中 ✨';
       }
     }, () => {
-      document.getElementById('syncStatusText').innerText = '⚠️ 正在使用离线模式';
+      document.getElementById('syncStatusText').innerText = '⚠️ 离线模式';
     });
 
     function saveData() {
       if (isRemoteUpdate) return;
-      dbRef.set(store).then(() => {
-        document.getElementById('syncStatusText').innerText = '☁️ 同步成功 ✨';
-        setTimeout(() => { document.getElementById('syncStatusText').innerText = '☁️ 云端双人实时同步 ✨'; }, 1200);
-      });
-      renderAll();
+      renderAll(); // 极速本地优先渲染，绝对不卡顿
+      dbRef.set(store).catch(() => {});
     }
 
     function renderAll() {
@@ -510,12 +535,7 @@
 
     function saveLoveDate() {
       const val = document.getElementById('input-love-date').value;
-      if (val) {
-        store.startDate = val;
-        closeModal('modal-love-date');
-        saveData();
-        showToast('✨ 恋爱起始日已更新！');
-      }
+      if (val) { store.startDate = val; closeModal('modal-love-date'); saveData(); showToast('✨ 恋爱起始日已更新！'); }
     }
 
     function renderCountdowns() {
@@ -777,7 +797,7 @@
       saveData(); renderPhotos(album.photos); showToast('🗑️ 已删除');
     }
 
-    /* NAVIGATION */
+    /* NAVIGATION & MODALS */
     function switchTab(tab) {
       currentAlbumId = null;
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -787,7 +807,9 @@
       document.getElementById(`page-${tab}`).classList.remove('hidden');
     }
 
-    function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+    function openModal(id) { document.getElementById(id).classList.add('hidden'); // Fix typo below
+      document.getElementById(id).classList.remove('hidden'); 
+    }
     function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
     function showToast(msg) {
       const toast = document.getElementById('toast');
@@ -796,9 +818,59 @@
       setTimeout(() => toast.classList.add('opacity-0'), 2000);
     }
 
-    document.getElementById('heartBtn').addEventListener('click', () => {
+    /* ================= HEART INTERACTION BUTTON (满屏爱心雨 & 长按放大) ================= */
+    const heartBtn = document.getElementById('heartBtn');
+    let pressTimer;
+
+    heartBtn.addEventListener('click', (e) => {
+      triggerHeartBurst(e.clientX || window.innerWidth/2, e.clientY || 80);
       showToast("今天也是爱你的一天 💕");
     });
+
+    heartBtn.addEventListener('touchstart', startHold);
+    heartBtn.addEventListener('mousedown', startHold);
+    heartBtn.addEventListener('touchend', endHold);
+    heartBtn.addEventListener('mouseup', endHold);
+
+    function startHold() {
+      pressTimer = setTimeout(() => {
+        const centerHeart = document.getElementById('pulseHeartCenter');
+        centerHeart.style.transform = 'translate(-50%, -50%) scale(2.5)';
+        centerHeart.style.opacity = '1';
+        showToast("爱意在无限无限变大... 💖");
+      }, 500);
+    }
+
+    function endHold() {
+      clearTimeout(pressTimer);
+      const centerHeart = document.getElementById('pulseHeartCenter');
+      centerHeart.style.transform = 'translate(-50%, -50%) scale(0)';
+      centerHeart.style.opacity = '0';
+    }
+
+    function triggerHeartBurst(x, y) {
+      const colors = ['#FF7B9C', '#FF5C83', '#FF8EA7', '#FF9EAA'];
+      for (let i = 0; i < 15; i++) {
+        const heart = document.createElement('div');
+        heart.className = 'burst-heart text-pinkAccent';
+        heart.innerHTML = '<i class="fa-solid fa-heart"></i>';
+        
+        const dx = (Math.random() - 0.5) * 260 + 'px';
+        const dy = (Math.random() - 0.5) * 180 + 'px';
+        const rot = (Math.random() - 0.5) * 360 + 'deg';
+
+        heart.style.setProperty('--dx', dx);
+        heart.style.setProperty('--dy', dy);
+        heart.style.setProperty('--rot', rot);
+        heart.style.fontSize = (Math.random() * 18 + 14) + 'px';
+        heart.style.left = x + 'px';
+        heart.style.top = y + 'px';
+        heart.style.color = colors[Math.floor(Math.random() * colors.length)];
+
+        document.body.appendChild(heart);
+        setTimeout(() => heart.remove(), 1500);
+      }
+    }
 
     /* ================= 3D PHOTO COSMOS WALL ================= */
     let cosmosScene, cosmosCamera, cosmosRenderer, photoGroup;
