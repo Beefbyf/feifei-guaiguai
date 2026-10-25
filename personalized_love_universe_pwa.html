@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>飞飞和乖乖的恋爱宇宙</title>
+  
+  <!-- iOS WebApp Settings -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="恋爱宇宙">
+  <link rel="apple-touch-icon" href="https://img.icons8.com/emoji/192/heart-suit.png">
+  
+  <!-- Tailwind CSS & FontAwesome Icons -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Three.js for 3D Heart Cosmos -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            cream: '#FAF7F2',
+            cardBg: '#FFFDF9',
+            pinkWarm: '#FFEDE8',
+            pinkAccent: '#FF7B9C',
+            pinkHover: '#FF5C83',
+            darkText: '#2D2926',
+            subText: '#8C857B'
+          },
+          boxShadow: {
+            soft: '0 10px 30px -5px rgba(255, 123, 156, 0.12)',
+            card: '0 4px 20px 0 rgba(0, 0, 0, 0.04)'
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background-color: #FAF7F2;
+      color: #2D2926;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+    
+    /* Heart bursting effect styling */
+    .burst-heart {
+      position: fixed;
+      pointer-events: none;
+      z-index: 9999;
+      animation: floatUpFade 1.5s ease-out forwards;
+    }
+    
+    @keyframes floatUpFade {
+      0% {
+        transform: translate(-50%, -50%) scale(0.5) rotate(0deg);
+        opacity: 1;
+      }
+      50% {
+        transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(1.4) rotate(var(--rot));
+        opacity: 0.9;
+      }
+      100% {
+        transform: translate(calc(-50% + var(--dx) * 1.5), calc(-50% - 100px)) scale(1.8) rotate(var(--rot));
+        opacity: 0;
+      }
+    }
+
+    .pulse-heart-center {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0);
+      pointer-events: none;
+      z-index: 9998;
+      transition: transform 0.1s ease-out, opacity 0.5s ease;
+    }
+
+    /* Modal Backdrop */
+    .modal-backdrop {
+      background: rgba(45, 41, 38, 0.4);
+      backdrop-filter: blur(8px);
+    }
+    
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 4px;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #FF7B9C;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body class="min-h-screen pb-12">
+
+  <!-- Header Section -->
+  <header class="sticky top-0 z-40 bg-cream/80 backdrop-blur-md px-6 py-4 flex items-center justify-between border-b border-pinkWarm">
+    <div class="flex items-center gap-3">
+      <!-- Interactive Heart Button -->
+      <button id="heartBtn" class="relative w-11 h-11 rounded-full bg-pinkWarm flex items-center justify-center text-pinkAccent text-xl shadow-inner active:scale-90 transition-transform duration-200">
+        <i class="fa-solid fa-heart animate-pulse"></i>
+      </button>
+      <div>
+        <h1 class="text-xl font-bold tracking-wide text-darkText flex items-center gap-1">
+          飞飞与乖乖 <span class="text-xs bg-pinkWarm text-pinkAccent px-2 py-0.5 rounded-full font-normal">恋爱宇宙</span>
+        </h1>
+        <p class="text-xs text-subText" id="loveDaysCounter">记录相爱的每一天</p>
+      </div>
+    </div>
+  </button>
+  </header>
+
+  <!-- Main Container -->
+  <main class="max-w-md mx-auto px-4 pt-4 space-y-6">
+
+    <!-- 1. 下一个小期待 (Countdown Section) -->
+    <section class="bg-cardBg rounded-3xl p-5 shadow-soft border border-pinkWarm/50">
+      <div class="flex justify-between items-center mb-4">
+        <div>
+          <span class="text-[10px] tracking-widest text-pinkAccent font-bold uppercase block">Countdown</span>
+          <h2 class="text-lg font-bold text-darkText">下一个小期待</h2>
+        </div>
+        <button onclick="openModal('addCountdownModal')" class="bg-pinkWarm text-pinkAccent px-3 py-1.5 rounded-full text-xs font-semibold hover:bg-pinkAccent hover:text-white transition-colors flex items-center gap-1">
+          <i class="fa-solid fa-plus text-[10px]"></i> 新增倒计时
+        </button>
+      </div>
+
+      <div id="countdownList" class="space-y-3">
+        <!-- Rendered dynamically -->
+      </div>
+    </section>
+
+    <!-- 2. Daily Habits & Our ToDo -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      
+      <!-- 习惯打卡 -->
+      <section class="bg-cardBg rounded-3xl p-5 shadow-soft border border-pinkWarm/50 flex flex-col justify-between">
+        <div>
+          <div class="flex justify-between items-center mb-2">
+            <div>
+              <span class="text-[10px] tracking-widest text-pinkAccent font-bold uppercase block">Daily Habits</span>
+              <h2 class="text-base font-bold text-darkText">习惯打卡</h2>
+            </div>
+            <button onclick="openModal('addHabitModal')" class="text-pinkAccent hover:text-pinkHover text-xs">
+              <i class="fa-solid fa-circle-plus text-base"></i>
+            </button>
+          </div>
+          
+          <div class="text-xs text-subText mb-3">
+            已完成 <span id="habitProgress" class="text-pinkAccent font-bold">0</span> / <span id="habitTotal">0</span>
+          </div>
+
+          <div id="habitList" class="space-y-2">
+            <!-- Rendered dynamically -->
+          </div>
+        </div>
+      </section>
+
+      <!-- 情侣待办 -->
+      <section class="bg-cardBg rounded-3xl p-5 shadow-soft border border-pinkWarm/50 flex flex-col justify-between">
+        <div>
+          <div class="flex justify-between items-center mb-2">
+            <div>
+              <span class="text-[10px] tracking-widest text-pinkAccent font-bold uppercase block">Our ToDo</span>
+              <h2 class="text-base font-bold text-darkText">情侣待办</h2>
+            </div>
+            <button onclick="openModal('addTodoModal')" class="text-pinkAccent hover:text-pinkHover text-xs">
+              <i class="fa-solid fa-circle-plus text-base"></i>
+            </button>
+          </div>
+          
+          <div id="todoList" class="space-y-2 mb-3">
+            <!-- Rendered dynamically -->
+          </div>
+        </div>
+
+        <button onclick="openModal('addTodoModal')" class="w-full py-2 bg-pinkWarm/60 hover:bg-pinkWarm text-pinkAccent rounded-2xl text-xs font-semibold text-center transition">
+          + 添加新待办
+        </button>
+      </section>
+    </div>
+
+    <!-- 3. 恋爱体验小工具 (Widgets Panel) -->
+    <section class="bg-cardBg rounded-3xl p-5 shadow-soft border border-pinkWarm/50">
+      <h2 class="text-base font-bold text-darkText mb-4">恋爱体验小工具</h2>
+      <div class="grid grid-cols-2 gap-3">
+        <!-- 小管家 (备忘录) -->
+        <button onclick="openModal('memoModal')" class="bg-pinkWarm/40 hover:bg-pinkWarm/80 p-4 rounded-2xl flex flex-col items-center justify-center gap-2 transition text-center group">
+          <div class="w-10 h-10 rounded-full bg-white flex items-center justify-center text-xl shadow-sm text-pinkAccent group-hover:scale-110 transition-transform">
+            🤖
+          </div>
+          <span class="text-xs font-bold text-darkText">小管家 (备忘录)</span>
+        </button>
+
+        <!-- 宠物年糕 -->
+        <button onclick="openModal('petModal')" class="bg-emerald-50 hover:bg-emerald-100 p-4 rounded-2xl flex flex-col items-center justify-center gap-2 transition text-center group">
+          <div class="w-10 h-10 rounded-full bg-white flex items-center justify-center text-xl shadow-sm group-hover:scale-110 transition-transform">
+            🐱
+          </div>
+          <span class="text-xs font-bold text-darkText">宠物年糕</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- 4. 恋爱日记 & 心愿单 & 日常记录 -->
+    <section class="bg-cardBg rounded-3xl p-5 shadow-soft border border-pinkWarm/50 space-y-4">
+      <div class="flex justify-between items-center">
+        <div>
+          <span class="text-[10px] tracking-widest text-pinkAccent font-bold uppercase block">Memories & Wishes</span>
+          <h2 class="text-lg font-bold text-darkText">恋爱日记与记录</h2>
+        </div>
+        <button onclick="openModal('addMemoryModal')" class="bg-pinkWarm text-pinkAccent px-3 py-1.5 rounded-full text-xs font-semibold hover:bg-pinkAccent hover:text-white transition flex items-center gap-1">
+          <i class="fa-solid fa-plus text-[10px]"></i> 新建记录
+        </button>
+      </div>
+
+      <!-- Categories Tab -->
+      <div class="flex gap-2 border-b border-gray-100 pb-2 text-xs">
+        <button onclick="switchCategory('diary')" id="tab-diary" class="px-3 py-1 rounded-full font-bold bg-pinkAccent text-white">恋爱日记</button>
+        <button onclick="switchCategory('wish')" id="tab-wish" class="px-3 py-1 rounded-full font-bold text-subText hover:bg-pinkWarm">心愿单</button>
+        <button onclick="switchCategory('daily')" id="tab-daily" class="px-3 py-1 rounded-full font-bold text-subText hover:bg-pinkWarm">日常小确幸</button>
+      </div>
+
+      <div id="memoryList" class="space-y-3">
+        <!-- Rendered dynamically -->
+      </div>
+    </section>
+
+    <!-- 5. 3D 随机照片星空墙 -->
+    <section class="bg-slate-950 rounded-3xl p-4 shadow-soft text-white relative overflow-hidden">
+      <div class="flex justify-between items-center mb-2 z-10 relative">
+        <div>
+          <span class="text-[10px] tracking-widest text-pinkAccent font-bold uppercase block">3D Photo Cosmos</span>
+          <h2 class="text-base font-bold text-white">随机浪漫照片星空</h2>
+        </div>
+        <button onclick="init3DCosmos()" class="text-xs bg-white/10 hover:bg-white/20 px-2.5 py-1 rounded-full text-pink-200 transition">
+          <i class="fa-solid fa-rotate-right"></i> 重新打乱
+        </button>
+      </div>
+      <p class="text-[11px] text-gray-400 mb-2 z-10 relative">每次打开都是不一样的浪漫记忆浮岛，滑动旋转视角。</p>
+      
+      <div id="cosmosCanvasContainer" class="w-full h-64 rounded-2xl relative overflow-hidden cursor-grab active:cursor-grabbing">
+        <!-- Three.js Canvas Inject -->
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ==================== MODALS ==================== -->
+
+  <!-- Modal: 宠物年糕互动 -->
+  <div id="petModal" class="fixed inset-0 z-50 modal-backdrop hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl space-y-5 animate-scaleUp">
+      <div class="flex justify-between items-center">
+        <h3 class="text-base font-bold text-darkText flex items-center gap-2">
+          <span>🐾</span> 宠物年糕乐园
+        </h3>
+        <button onclick="closeModal('petModal')" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+
+      <div class="grid grid-cols-2 gap-4">
+        <!-- 宠物1: 初一 -->
+        <button onclick="interactPet('初一')" class="p-4 bg-orange-50 hover:bg-orange-100 rounded-2xl border border-orange-100 flex flex-col items-center text-center transition active:scale-95">
+          <div class="w-16 h-16 rounded-full bg-white flex items-center justify-center text-3xl shadow-sm mb-2 relative">
+            🐱
+            <span class="absolute -bottom-1 -right-1 text-xs">🐾</span>
+          </div>
+          <span class="font-bold text-darkText text-sm">初一</span>
+          <span class="text-[10px] text-orange-600 bg-orange-200/50 px-2 py-0.5 rounded-full mt-1">三花猫咪</span>
+        </button>
+
+        <!-- 宠物2: 彪彪 -->
+        <button onclick="interactPet('彪彪')" class="p-4 bg-blue-50 hover:bg-blue-100 rounded-2xl border border-blue-100 flex flex-col items-center text-center transition active:scale-95">
+          <div class="w-16 h-16 rounded-full bg-white flex items-center justify-center text-3xl shadow-sm mb-2 relative">
+            🐈
+            <span class="absolute -bottom-1 -right-1 text-xs">✨</span>
+          </div>
+          <span class="font-bold text-darkText text-sm">彪彪</span>
+          <span class="text-[10px] text-blue-600 bg-blue-200/50 px-2 py-0.5 rounded-full mt-1">异瞳白猫</span>
+        </button>
+      </div>
+
+      <!-- Pop-up Text Output -->
+      <div id="petDialog" class="bg-pinkWarm/30 p-4 rounded-2xl text-xs text-darkText min-h-[60px] flex items-center justify-center text-center font-medium border border-pinkWarm">
+        点击上方的小猫咪，和它们玩耍吧~
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: 小管家 (备忘录) -->
+  <div id="memoModal" class="fixed inset-0 z-50 modal-backdrop hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl space-y-4 max-h-[85vh] flex flex-col">
+      <div class="flex justify-between items-center">
+        <h3 class="text-base font-bold text-darkText flex items-center gap-2">
+          <span>🤖</span> 小管家提醒备忘录
+        </h3>
+        <button onclick="closeModal('memoModal')" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+
+      <div class="flex gap-2">
+        <input type="text" id="newMemoInput" placeholder="输入下一个要做的事情..." class="flex-1 px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs focus:outline-none focus:border-pinkAccent">
+        <button onclick="addMemo()" class="bg-pinkAccent text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-pinkHover transition">添加</button>
+      </div>
+
+      <div id="memoList" class="flex-1 overflow-y-auto space-y-2 pr-1">
+        <!-- Dynamic memos -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: 新增倒计时 -->
+  <div id="addCountdownModal" class="fixed inset-0 z-50 modal-backdrop hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl space-y-4">
+      <h3 class="text-base font-bold text-darkText">新增倒计时期待</h3>
+      <input type="text" id="countdownTitle" placeholder="期待的事情 (如: 一起看电影)" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs focus:outline-none focus:border-pinkAccent">
+      <input type="date" id="countdownDate" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs focus:outline-none focus:border-pinkAccent">
+      <div class="flex gap-2 pt-2">
+        <button onclick="closeModal('addCountdownModal')" class="flex-1 py-2 bg-gray-100 text-gray-600 rounded-xl text-xs font-bold">取消</button>
+        <button onclick="addCountdown()" class="flex-1 py-2 bg-pinkAccent text-white rounded-xl text-xs font-bold hover:bg-pinkHover">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: 新增习惯 -->
+  <div id="addHabitModal" class="fixed inset-0 z-50 modal-backdrop hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl space-y-4">
+      <h3 class="text-base font-bold text-darkText">新增习惯打卡</h3>
+      <input type="text" id="habitTitle" placeholder="习惯名称 (如: 提醒多喝水)" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs focus:outline-none focus:border-pinkAccent">
+      <div class="flex gap-2 pt-2">
+        <button onclick="closeModal('addHabitModal')" class="flex-1 py-2 bg-gray-100 text-gray-600 rounded-xl text-xs font-bold">取消</button>
+        <button onclick="addHabit()" class="flex-1 py-2 bg-pinkAccent text-white rounded-xl text-xs font-bold hover:bg-pinkHover">添加</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: 新增待办 -->
+  <div id="addTodoModal" class="fixed inset-0 z-50 modal-backdrop hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl space-y-4">
+      <h3 class="text-base font-bold text-darkText">新增情侣待办</h3>
+      <input type="text" id="todoTitle" placeholder="待办事项..." class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs focus:outline-none focus:border-pinkAccent">
+      <div class="flex gap-2 pt-2">
+        <button onclick="closeModal('addTodoModal')" class="flex-1 py-2 bg-gray-100 text-gray-600 rounded-xl text-xs font-bold">取消</button>
+        <button onclick="addTodo()" class="flex-1 py-2 bg-pinkAccent text-white rounded-xl text-xs font-bold hover:bg-pinkHover">添加</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: 新增日记/心愿/日常记录 -->
+  <div id="addMemoryModal" class="fixed inset-0 z-50 modal-backdrop hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl space-y-4">
+      <h3 class="text-base font-bold text-darkText">新增记录</h3>
+      <select id="memoryCategorySelect" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs focus:outline-none focus:border-pinkAccent">
+        <option value="diary">恋爱日记</option>
+        <option value="wish">心愿单</option>
+        <option value="daily">日常小确幸</option>
+      </select>
+      <input type="text" id="memoryTitle" placeholder="标题..." class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs focus:outline-none focus:border-pinkAccent">
+      <textarea id="memoryContent" placeholder="记录下浪漫的瞬间..." class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs focus:outline-none focus:border-pinkAccent h-20"></textarea>
+      <div class="flex gap-2 pt-2">
+        <button onclick="closeModal('addMemoryModal')" class="flex-1 py-2 bg-gray-100 text-gray-600 rounded-xl text-xs font-bold">取消</button>
+        <button onclick="addMemory()" class="flex-1 py-2 bg-pinkAccent text-white rounded-xl text-xs font-bold hover:bg-pinkHover">发布</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Central Expanding Heart Element for Long Press -->
+  <div id="pulseHeartCenter" class="pulse-heart-center text-pinkAccent opacity-0">
+    <i class="fa-solid fa-heart text-8xl filter drop-shadow-lg"></i>
+  </div>
+
+  <!-- Toast Notification Message -->
+  <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-darkText/90 text-white text-xs px-4 py-2 rounded-full shadow-lg opacity-0 pointer-events-none transition-opacity duration-300"></div>
+
+  <script>
+    /* ================= DATA & PERSISTENCE ================= */
+    const defaultData = {
+      countdowns: [
+        { id: 1, title: '我们的第一个月纪念日', date: '2026-11-15' },
+        { id: 2, title: '下次见面一起吃火锅', date: '2026-11-01' }
+      ],
+      habits: [
+        { id: 1, title: '💧 提醒多喝水', completed: false },
+        { id: 2, title: '🍎 记得吃水果', completed: false },
+        { id: 3, title: '🌙 早点睡觉呀', completed: false }
+      ],
+      todos: [
+        { id: 1, title: '去公园散步拍落叶', completed: false },
+        { id: 2, title: '一起看一场新电影', completed: true }
+      ],
+      memos: [
+        { id: 1, title: '记得买明天的早饭奶茶~' }
+      ],
+      memories: [
+        { id: 1, category: 'diary', title: '一起看晚霞', content: '今天的天空是粉紫色的，就像你笑起来的样子一样温柔。', date: '2026-10-24' },
+        { id: 2, category: 'wish', title: '去海边看日出', content: '答应我，明年夏天一起去听海浪的声音。', date: '2026-10-20' },
+        { id: 3, category: 'daily', title: '抢到了你想吃的蛋糕', content: '排了半小时队，看到你满足的样子就很值得。', date: '2026-10-18' }
+      ]
+    };
+
+    let store = JSON.parse(localStorage.getItem('feifei_love_universe')) || defaultData;
+
+    function saveData() {
+      localStorage.setItem('feifei_love_universe', JSON.stringify(store));
+      renderAll();
+    }
+
+    let activeMemoryCategory = 'diary';
+
+    /* ================= RENDER FUNCTIONS ================= */
+    function renderAll() {
+      renderCountdowns();
+      renderHabits();
+      renderTodos();
+      renderMemos();
+      renderMemories();
+    }
+
+    function renderCountdowns() {
+      const container = document.getElementById('countdownList');
+      container.innerHTML = store.countdowns.map(item => {
+        const target = new Date(item.date);
+        const today = new Date();
+        const diffTime = target - today;
+        const diffDays = Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
+        return `
+          <div class="flex items-center justify-between p-3 bg-pinkWarm/20 rounded-2xl border border-pinkWarm/40">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-xl bg-pinkWarm text-pinkAccent flex items-center justify-center font-bold text-base">🎁</div>
+              <div>
+                <h4 class="text-xs font-bold text-darkText">${item.title}</h4>
+                <p class="text-[10px] text-subText">${item.date}</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-3">
+              <span class="text-base font-extrabold text-pinkAccent">${diffDays} <span class="text-xs font-normal text-subText">天</span></span>
+              <button onclick="deleteCountdown(${item.id})" class="text-gray-300 hover:text-red-400 text-xs"><i class="fa-solid fa-trash"></i></button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderHabits() {
+      const container = document.getElementById('habitList');
+      const completed = store.habits.filter(h => h.completed).length;
+      document.getElementById('habitProgress').innerText = completed;
+      document.getElementById('habitTotal').innerText = store.habits.length;
+
+      container.innerHTML = store.habits.map(item => `
+        <div class="flex items-center justify-between p-2 bg-gray-50 rounded-xl text-xs">
+          <div onclick="toggleHabit(${item.id})" class="flex items-center gap-2 cursor-pointer flex-1">
+            <i class="fa-regular ${item.completed ? 'fa-circle-check text-pinkAccent' : 'fa-circle text-gray-300'} text-sm"></i>
+            <span class="${item.completed ? 'line-through text-subText' : 'text-darkText font-medium'}">${item.title}</span>
+          </div>
+          <button onclick="deleteHabit(${item.id})" class="text-gray-300 hover:text-red-400 text-xs px-1"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+      `).join('');
+    }
+
+    function renderTodos() {
+      const container = document.getElementById('todoList');
+      container.innerHTML = store.todos.map(item => `
+        <div class="flex items-center justify-between p-2 bg-gray-50 rounded-xl text-xs">
+          <div onclick="toggleTodo(${item.id})" class="flex items-center gap-2 cursor-pointer flex-1">
+            <i class="fa-regular ${item.completed ? 'fa-circle-check text-pinkAccent' : 'fa-circle text-gray-300'} text-sm"></i>
+            <span class="${item.completed ? 'line-through text-subText' : 'text-darkText font-medium'}">${item.title}</span>
+          </div>
+          <button onclick="deleteTodo(${item.id})" class="text-gray-300 hover:text-red-400 text-xs px-1"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+      `).join('');
+    }
+
+    function renderMemos() {
+      const container = document.getElementById('memoList');
+      if (store.memos.length === 0) {
+        container.innerHTML = `<p class="text-center text-xs text-subText py-4">暂无待办备忘事项~</p>`;
+        return;
+      }
+      container.innerHTML = store.memos.map(item => `
+        <div class="flex items-center justify-between p-2.5 bg-pinkWarm/20 rounded-xl border border-pinkWarm/30 text-xs">
+          <span class="text-darkText font-medium flex-1">${item.title}</span>
+          <button onclick="deleteMemo(${item.id})" class="text-gray-400 hover:text-red-400 text-xs"><i class="fa-solid fa-trash"></i></button>
+        </div>
+      `).join('');
+    }
+
+    function renderMemories() {
+      const container = document.getElementById('memoryList');
+      const filtered = store.memories.filter(m => m.category === activeMemoryCategory);
+      
+      if (filtered.length === 0) {
+        container.innerHTML = `<p class="text-center text-xs text-subText py-6">此分类下暂无记录，快去新建吧~</p>`;
+        return;
+      }
+
+      container.innerHTML = filtered.map(item => `
+        <div class="p-3.5 bg-gray-50/80 rounded-2xl border border-gray-100 space-y-1.5 relative group">
+          <div class="flex justify-between items-center">
+            <h4 class="text-xs font-bold text-darkText">${item.title}</h4>
+            <div class="flex items-center gap-2">
+              <span class="text-[10px] text-subText">${item.date}</span>
+              <button onclick="deleteMemory(${item.id})" class="text-gray-300 hover:text-red-400 text-xs"><i class="fa-solid fa-trash"></i></button>
+            </div>
+          </div>
+          <p class="text-xs text-subText leading-relaxed">${item.content}</p>
+        </div>
+      `).join('');
+    }
+
+    /* ================= ACTION HANDLERS ================= */
+    function toggleHabit(id) {
+      store.habits = store.habits.map(h => h.id === id ? { ...h, completed: !h.completed } : h);
+      saveData();
+    }
+    function deleteHabit(id) {
+      store.habits = store.habits.filter(h => h.id !== id);
+      saveData();
+    }
+    function addHabit() {
+      const input = document.getElementById('habitTitle');
+      if (!input.value.trim()) return;
+      store.habits.push({ id: Date.now(), title: input.value.trim(), completed: false });
+      input.value = '';
+      closeModal('addHabitModal');
+      saveData();
+    }
+
+    function toggleTodo(id) {
+      store.todos = store.todos.map(t => t.id === id ? { ...t, completed: !t.completed } : t);
+      saveData();
+    }
+    function deleteTodo(id) {
+      store.todos = store.todos.filter(t => t.id !== id);
+      saveData();
+    }
+    function addTodo() {
+      const input = document.getElementById('todoTitle');
+      if (!input.value.trim()) return;
+      store.todos.push({ id: Date.now(), title: input.value.trim(), completed: false });
+      input.value = '';
+      closeModal('addTodoModal');
+      saveData();
+    }
+
+    function addCountdown() {
+      const title = document.getElementById('countdownTitle').value.trim();
+      const date = document.getElementById('countdownDate').value;
+      if (!title || !date) return;
+      store.countdowns.push({ id: Date.now(), title, date });
+      document.getElementById('countdownTitle').value = '';
+      document.getElementById('countdownDate').value = '';
+      closeModal('addCountdownModal');
+      saveData();
+    }
+    function deleteCountdown(id) {
+      store.countdowns = store.countdowns.filter(c => c.id !== id);
+      saveData();
+    }
+
+    function addMemo() {
+      const input = document.getElementById('newMemoInput');
+      if (!input.value.trim()) return;
+      store.memos.push({ id: Date.now(), title: input.value.trim() });
+      input.value = '';
+      saveData();
+    }
+    function deleteMemo(id) {
+      store.memos = store.memos.filter(m => m.id !== id);
+      saveData();
+    }
+
+    function switchCategory(cat) {
+      activeMemoryCategory = cat;
+      ['diary', 'wish', 'daily'].forEach(c => {
+        const tab = document.getElementById(`tab-${c}`);
+        if (c === cat) {
+          tab.className = 'px-3 py-1 rounded-full font-bold bg-pinkAccent text-white';
+        } else {
+          tab.className = 'px-3 py-1 rounded-full font-bold text-subText hover:bg-pinkWarm';
+        }
+      });
+      renderMemories();
+    }
+
+    function addMemory() {
+      const cat = document.getElementById('memoryCategorySelect').value;
+      const title = document.getElementById('memoryTitle').value.trim();
+      const content = document.getElementById('memoryContent').value.trim();
+      if (!title || !content) return;
+      
+      const now = new Date();
+      const dateStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+      
+      store.memories.unshift({ id: Date.now(), category: cat, title, content, date: dateStr });
+      document.getElementById('memoryTitle').value = '';
+      document.getElementById('memoryContent').value = '';
+      closeModal('addMemoryModal');
+      activeMemoryCategory = cat;
+      switchCategory(cat);
+      saveData();
+    }
+    function deleteMemory(id) {
+      store.memories = store.memories.filter(m => m.id !== id);
+      saveData();
+    }
+
+    /* ================= PET MODULE INTERACTION ================= */
+    const petQuotes = {
+      '初一': [
+        "初一蹭了蹭你的手心，发出‘呼噜呼噜’的声音~ 🐾",
+        "初一跳到了你的膝盖上，选了个最舒服的位置趴下。🐱",
+        "初一用大眼睛无辜地看着你，伸出爪子轻轻勾了勾你的手指。",
+        "初一在阳光下打了个哈欠，翻开小肚皮求抚摸！✨",
+        "初一为你叼来了一朵小野花，轻声喵了一句：‘要开心哦！’"
+      ],
+      '彪彪': [
+        "彪彪迈着优雅的小碎步走来，异瞳里闪烁着星光，求贴贴！🐈",
+        "彪彪轻轻碰了一下你的鼻子，小耳朵抖动了两下~",
+        "彪彪在你脚边绕来绕去，像个小保镖一样守护着你！✨",
+        "彪彪傲娇地昂起头，但尾巴却偷偷诚实地围住了你。",
+        "彪彪发出了治愈的咕噜声，今天也是最喜欢你的一天！"
+      ]
+    };
+
+    function interactPet(name) {
+      const list = petQuotes[name];
+      const randomText = list[Math.floor(Math.random() * list.length)];
+      const dialog = document.getElementById('petDialog');
+      dialog.innerHTML = `<span class="animate-bounce inline-block mr-1">✨</span> ${randomText}`;
+    }
+
+    /* ================= MODAL HELPERS ================= */
+    function openModal(id) {
+      document.getElementById(id).classList.remove('hidden');
+    }
+    function closeModal(id) {
+      document.getElementById(id).classList.add('hidden');
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.innerText = msg;
+      toast.classList.remove('opacity-0');
+      setTimeout(() => toast.classList.add('opacity-0'), 2000);
+    }
+
+    /* ================= HEART INTERACTION BUTTON ================= */
+    const heartBtn = document.getElementById('heartBtn');
+    let pressTimer;
+
+    // Click effect (Bursting hearts and floating toast text)
+    heartBtn.addEventListener('click', (e) => {
+      triggerHeartBurst(e.clientX || window.innerWidth/2, e.clientY || 80);
+      showToast("今天也是爱你的一天 💕");
+    });
+
+    // Long press effect (Central pulsing giant heart)
+    heartBtn.addEventListener('touchstart', startHold);
+    heartBtn.addEventListener('mousedown', startHold);
+    heartBtn.addEventListener('touchend', endHold);
+    heartBtn.addEventListener('mouseup', endHold);
+    heartBtn.addEventListener('mouseleave', endHold);
+
+    function startHold(e) {
+      pressTimer = setTimeout(() => {
+        const centerHeart = document.getElementById('pulseHeartCenter');
+        centerHeart.style.transform = 'translate(-50%, -50%) scale(2.5)';
+        centerHeart.style.opacity = '1';
+        showToast("爱意在无限无限变大... 💖");
+      }, 500);
+    }
+
+    function endHold() {
+      clearTimeout(pressTimer);
+      const centerHeart = document.getElementById('pulseHeartCenter');
+      centerHeart.style.transform = 'translate(-50%, -50%) scale(0)';
+      centerHeart.style.opacity = '0';
+    }
+
+    function triggerHeartBurst(x, y) {
+      const colors = ['#FF7B9C', '#FF5C83', '#FF8EA7', '#FF9EAA'];
+      for (let i = 0; i < 16; i++) {
+        const heart = document.createElement('div');
+        heart.className = 'burst-heart text-pinkAccent';
+        heart.innerHTML = '<i class="fa-solid fa-heart"></i>';
+        
+        const dx = (Math.random() - 0.5) * 300 + 'px';
+        const dy = (Math.random() - 0.5) * 200 + 'px';
+        const rot = (Math.random() - 0.5) * 360 + 'deg';
+        const size = Math.random() * 20 + 16 + 'px';
+
+        heart.style.setProperty('--dx', dx);
+        heart.style.setProperty('--dy', dy);
+        heart.style.setProperty('--rot', rot);
+        heart.style.fontSize = size;
+        heart.style.left = x + 'px';
+        heart.style.top = y + 'px';
+        heart.style.color = colors[Math.floor(Math.random() * colors.length)];
+
+        document.body.appendChild(heart);
+        setTimeout(() => heart.remove(), 1500);
+      }
+    }
+
+    /* ================= 3D PHOTO COSMOS (THREE.JS) ================= */
+    let scene, camera, renderer, photoGroup;
+
+    function init3DCosmos() {
+      const container = document.getElementById('cosmosCanvasContainer');
+      container.innerHTML = ''; // clear existing canvas
+
+      const width = container.clientWidth;
+      const height = container.clientHeight;
+
+      scene = new THREE.Scene();
+      camera = new THREE.PerspectiveCamera(60, width / height, 0.1, 1000);
+      camera.position.z = 15;
+
+      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+      renderer.setSize(width, height);
+      container.appendChild(renderer.domElement);
+
+      // Central glowing pink heart core
+      const heartShape = new THREE.Shape();
+      const x = 0, y = 0;
+      heartShape.moveTo(x + 0.25, y + 0.25);
+      heartShape.bezierCurveTo(x + 0.25, y + 0.25, x + 0.2, y, x, y);
+      heartShape.bezierCurveTo(x - 0.3, y, x - 0.3, y + 0.35, x - 0.3, y + 0.35);
+      heartShape.bezierCurveTo(x - 0.3, y + 0.55, x - 0.1, y + 0.77, x + 0.25, y + 1);
+      heartShape.bezierCurveTo(x + 0.6, y + 0.77, x + 0.8, y + 0.55, x + 0.8, y + 0.35);
+      heartShape.bezierCurveTo(x + 0.8, y + 0.35, x + 0.8, y, x + 0.5, y);
+      heartShape.bezierCurveTo(x + 0.35, y, x + 0.25, y + 0.25, x + 0.25, y + 0.25);
+
+      const extrudeSettings = { depth: 0.2, bevelEnabled: true, bevelSegments: 2, steps: 1, bevelSize: 0.1, bevelThickness: 0.1 };
+      const geometry = new THREE.ExtrudeGeometry(heartShape, extrudeSettings);
+      const material = new THREE.MeshBasicMaterial({ color: 0xFF7B9C, wireframe: true });
+      const coreMesh = new THREE.Mesh(geometry, material);
+      coreMesh.scale.set(1.5, 1.5, 1.5);
+      coreMesh.rotation.z = Math.PI;
+      scene.add(coreMesh);
+
+      // Floating photo cards
+      photoGroup = new THREE.Group();
+      scene.add(photoGroup);
+
+      const mockCanvasTextures = createMockPhotoTextures();
+      const cardGeo = new THREE.PlaneGeometry(3, 2.2);
+
+      for (let i = 0; i < 7; i++) {
+        const cardMat = new THREE.MeshBasicMaterial({
+          map: mockCanvasTextures[i % mockCanvasTextures.length],
+          side: THREE.DoubleSide
+        });
+        const cardMesh = new THREE.Mesh(cardGeo, cardMat);
+        
+        // Random spherical positions
+        const u = Math.random();
+        const v = Math.random();
+        const theta = u * 2.0 * Math.PI;
+        const phi = Math.acos(2.0 * v - 1.0);
+        const r = 7 + Math.random() * 3;
+
+        cardMesh.position.x = r * Math.sin(phi) * Math.cos(theta);
+        cardMesh.position.y = r * Math.sin(phi) * Math.sin(theta);
+        cardMesh.position.z = r * Math.cos(phi);
+
+        cardMesh.lookAt(0, 0, 0);
+        photoGroup.add(cardMesh);
+      }
+
+      // Background Star Particles
+      const starsGeo = new THREE.BufferGeometry();
+      const starsCount = 200;
+      const starPositions = new Float32Array(starsCount * 3);
+
+      for (let i = 0; i < starsCount * 3; i++) {
+        starPositions[i] = (Math.random() - 0.5) * 40;
+      }
+      starsGeo.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
+      const starsMat = new THREE.PointsMaterial({ color: 0xFF8EA7, size: 0.15 });
+      const starField = new THREE.Points(starsGeo, starsMat);
+      scene.add(starField);
+
+      // Orbit interaction
+      let isDragging = false;
+      let previousMousePosition = { x: 0, y: 0 };
+
+      container.addEventListener('mousedown', () => isDragging = true);
+      container.addEventListener('touchstart', () => isDragging = true);
+
+      window.addEventListener('mouseup', () => isDragging = false);
+      window.addEventListener('touchend', () => isDragging = false);
+
+      container.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+        const deltaMove = { x: e.clientX - previousMousePosition.x, y: e.clientY - previousMousePosition.y };
+        photoGroup.rotation.y += deltaMove.x * 0.005;
+        photoGroup.rotation.x += deltaMove.y * 0.005;
+        previousMousePosition = { x: e.clientX, y: e.clientY };
+      });
+
+      container.addEventListener('touchmove', (e) => {
+        if (!isDragging || !e.touches[0]) return;
+        const touch = e.touches[0];
+        const deltaMove = { x: touch.clientX - previousMousePosition.x, y: touch.clientY - previousMousePosition.y };
+        photoGroup.rotation.y += deltaMove.x * 0.005;
+        photoGroup.rotation.x += deltaMove.y * 0.005;
+        previousMousePosition = { x: touch.clientX, y: touch.clientY };
+      });
+
+      container.addEventListener('mousedown', (e) => previousMousePosition = { x: e.clientX, y: e.clientY });
+      container.addEventListener('touchstart', (e) => {
+        if (e.touches[0]) previousMousePosition = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+      });
+
+      // Animation Loop
+      function animate() {
+        requestAnimationFrame(animate);
+        photoGroup.rotation.y += 0.002;
+        coreMesh.rotation.y += 0.01;
+        renderer.render(scene, camera);
+      }
+      animate();
+    }
+
+    // Dynamic Mock Canvas Textures for photos
+    function createMockPhotoTextures() {
+      const titles = ["浪漫回忆", "甜蜜时刻", "相伴日落", "星空约会", "我们的家", "一起旅行", "温暖守候"];
+      const bgColors = ["#FFEDE8", "#FFF0F5", "#FFE4E1", "#E6E6FA", "#FFF5EE", "#F0FFF0", "#F5F5DC"];
+      
+      return titles.map((title, idx) => {
+        const canvas = document.createElement('canvas');
+        canvas.width = 300;
+        canvas.height = 220;
+        const ctx = canvas.getContext('2d');
+
+        // Card Border and Soft Fill
+        ctx.fillStyle = bgColors[idx];
+        ctx.fillRect(0, 0, 300, 220);
+
+        ctx.strokeStyle = '#FF7B9C';
+        ctx.lineWidth = 8;
+        ctx.strokeRect(4, 4, 292, 212);
+
+        // Heart Icon in photo center
+        ctx.fillStyle = '#FF7B9C';
+        ctx.font = '48px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('❤️', 150, 110);
+
+        // Title text
+        ctx.fillStyle = '#2D2926';
+        ctx.font = 'bold 20px sans-serif';
+        ctx.fillText(title, 150, 165);
+
+        return new THREE.CanvasTexture(canvas);
+      });
+    }
+
+    /* ================= INITIALIZATION ================= */
+    window.onload = function() {
+      renderAll();
+      init3DCosmos();
+    };
+  </script>
+</body>
+</html>
