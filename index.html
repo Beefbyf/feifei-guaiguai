@@ -34,9 +34,7 @@
             darkText: '#2D2926',
             subText: '#8C857B'
           },
-          boxShadow: {
-            soft: '0 10px 30px -5px rgba(255, 123, 156, 0.12)'
-          }
+          boxShadow: { soft: '0 10px 30px -5px rgba(255, 123, 156, 0.12)' }
         }
       }
     }
@@ -46,7 +44,12 @@
       width: 100%; height: 100%; margin: 0; padding: 0;
       background-color: #FAF7F2; color: #2D2926;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      overflow-x: hidden; -webkit-tap-highlight-color: transparent; user-select: none;
+      overflow-x: hidden; 
+      /* 禁止长按复制与选中文字，完美解决手机误触问题 */
+      -webkit-tap-highlight-color: transparent;
+      -webkit-user-select: none;
+      user-select: none;
+      -webkit-touch-callout: none;
     }
     .safe-area-container {
       padding-top: max(16px, env(safe-area-inset-top));
@@ -102,10 +105,10 @@
 
   <div class="content-layer safe-area-container max-w-md mx-auto space-y-5">
 
-    <!-- 顶部导航栏 -->
-    <header class="glass-card rounded-full p-2 flex items-center justify-between sticky top-3 z-40">
+    <!-- 顶部导航栏 (防选中防复制) -->
+    <header class="glass-card rounded-full p-2 flex items-center justify-between sticky top-3 z-40 select-none">
       <div class="flex items-center gap-3 pl-2">
-        <button id="heartBtn" class="relative w-9 h-9 rounded-full bg-pinkWarm flex items-center justify-center text-pinkAccent text-base shadow-inner active:scale-90 transition-transform">
+        <button id="heartBtn" class="relative w-9 h-9 rounded-full bg-pinkWarm flex items-center justify-center text-pinkAccent text-base shadow-inner active:scale-90 transition-transform cursor-pointer">
           <i class="fa-solid fa-heart animate-pulse"></i>
         </button>
         <div>
@@ -121,14 +124,14 @@
       </nav>
     </header>
 
-    <!-- 音乐播放悬浮条 -->
+    <!-- 音乐播放悬浮条 (15首直连浪漫情歌) -->
     <div class="glass-card px-4 py-2.5 flex items-center justify-between text-xs">
       <div class="flex items-center gap-2.5 overflow-hidden flex-1">
-        <button onclick="togglePlayMusic()" class="w-8 h-8 rounded-full bg-pinkAccent text-white flex items-center justify-center shrink-0 shadow-sm">
+        <button onclick="togglePlayMusic()" class="w-8 h-8 rounded-full bg-pinkAccent text-white flex items-center justify-center shrink-0 shadow-sm cursor-pointer">
           <i id="musicPlayIcon" class="fa-solid fa-play text-xs"></i>
         </button>
         <div class="truncate flex-1">
-          <div id="musicTitle" class="font-bold text-darkText truncate text-[11px]">点击播放浪漫 BGM 🎵</div>
+          <div id="musicTitle" class="font-bold text-darkText truncate text-[11px]">浪漫15首情歌轮播 🎵</div>
           <input type="range" id="musicProgressBar" value="0" max="100" class="w-full h-1 bg-pinkWarm rounded-lg accent-pinkAccent cursor-pointer mt-1" oninput="seekMusic(this.value)">
         </div>
       </div>
@@ -169,7 +172,7 @@
         </div>
       </section>
 
-      <!-- 新功能1：随机恋爱盲盒 / 每日惊喜 -->
+      <!-- 随机恋爱盲盒 / 每日惊喜 -->
       <section class="glass-card p-5 space-y-3 bg-gradient-to-r from-pinkWarm/40 to-purpleWarm/40">
         <div class="flex justify-between items-center">
           <div>
@@ -230,19 +233,28 @@
         </section>
       </div>
 
-      <!-- 新功能2：恋爱足迹地图 / 随行发挥 -->
+      <!-- 🌟 升级版：3D 地球仪动画模型与足迹地图 -->
       <section class="glass-card p-5 space-y-3.5">
         <div class="flex justify-between items-center">
           <div>
-            <span class="text-[9px] tracking-widest text-pinkAccent font-bold uppercase">LOVE FOOTPRINT</span>
-            <h2 class="text-base font-bold text-darkText">🗺️ 我们走过的足迹</h2>
+            <span class="text-[9px] tracking-widest text-pinkAccent font-bold uppercase">LOVE GLOBE & MAP</span>
+            <h2 class="text-base font-bold text-darkText">🗺️ 我们走过的足迹 (3D地球仪)</h2>
           </div>
-          <button onclick="openModal('addFootprintModal')" class="text-xs bg-pinkWarm text-pinkAccent px-3 py-1.5 rounded-full font-bold">+ 记录足迹</button>
+          <div class="flex gap-1.5">
+            <button onclick="openModal('addFootprintModal')" class="text-xs bg-pinkWarm text-pinkAccent px-2.5 py-1.5 rounded-full font-bold">+ 记录足迹</button>
+            <button onclick="toggleGlobeView()" id="globeToggleBtn" class="text-xs bg-pinkAccent text-white px-3 py-1.5 rounded-full font-bold shadow-sm">切换平铺地图</button>
+          </div>
         </div>
-        <div id="footprint-container" class="space-y-2.5"></div>
+        <p class="text-[11px] text-subText">手指可滑动旋转 3D 地球仪，点击切换可查看详细足迹气泡卡片！</p>
+        
+        <!-- 3D Globe Canvas 容器 -->
+        <div id="globeContainer" class="w-full h-56 rounded-2xl bg-slate-900 relative overflow-hidden cursor-grab active:cursor-grabbing shadow-inner"></div>
+        
+        <!-- 平铺足迹列表与气泡弹窗容器 -->
+        <div id="flatFootprintContainer" class="space-y-2.5 pt-2 hidden"></div>
       </section>
 
-      <!-- Mini Tools -->
+      <!-- Mini Tools (宠物名称修改为“我们的宠物”) -->
       <section class="glass-card p-5">
         <h2 class="text-base font-bold text-darkText mb-3">恋爱体验小工具</h2>
         <div class="grid grid-cols-2 gap-3">
@@ -252,7 +264,7 @@
           </button>
           <button onclick="openModal('petModal')" class="bg-emerald-50 hover:bg-emerald-100 p-4 rounded-2xl flex flex-col items-center justify-center gap-2 transition text-center group">
             <div class="w-10 h-10 rounded-full bg-white flex items-center justify-center text-xl shadow-sm group-hover:scale-110 transition-transform">🐱</div>
-            <span class="text-xs font-bold text-darkText">宠物年糕</span>
+            <span class="text-xs font-bold text-darkText">我们的宠物</span>
           </button>
         </div>
       </section>
@@ -345,7 +357,7 @@
   <div id="petModal" class="fixed inset-0 z-50 modal-backdrop hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl space-y-5">
       <div class="flex justify-between items-center">
-        <h3 class="text-base font-bold text-darkText">🐾 宠物年糕乐园</h3>
+        <h3 class="text-base font-bold text-darkText">🐾 我们的宠物乐园</h3>
         <button onclick="closeModal('petModal')" class="text-gray-400"><i class="fa-solid fa-xmark text-lg"></i></button>
       </div>
       <div class="grid grid-cols-2 gap-4">
@@ -374,11 +386,11 @@
     </div>
   </div>
 
-  <!-- 歌单与音乐管理器 Modal -->
+  <!-- 歌单管理器 Modal -->
   <div id="musicManagerModal" class="fixed inset-0 z-50 modal-backdrop hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl space-y-4 max-h-[80vh] flex flex-col">
       <div class="flex justify-between items-center">
-        <h3 class="text-base font-bold text-darkText">🎵 浪漫 BGM 歌单管理</h3>
+        <h3 class="text-base font-bold text-darkText">🎵 15首浪漫 BGM 歌单管理</h3>
         <button onclick="closeModal('musicManagerModal')" class="text-gray-400"><i class="fa-solid fa-xmark"></i></button>
       </div>
       <div class="space-y-2">
@@ -444,7 +456,7 @@
   <div id="addFootprintModal" class="fixed inset-0 z-50 modal-backdrop hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl space-y-4">
       <h3 class="text-base font-bold text-darkText">🗺️ 记录我们的足迹</h3>
-      <input type="text" id="footprintPlace" placeholder="地点名称 (如: 丽江古城、某某路咖啡厅)" class="w-full px-3 py-2 bg-gray-50 border rounded-xl text-xs">
+      <input type="text" id="footprintPlace" placeholder="地点名称 (如: 北京、上海、三亚海滩)" class="w-full px-3 py-2 bg-gray-50 border rounded-xl text-xs">
       <input type="date" id="footprintDate" class="w-full px-3 py-2 bg-gray-50 border rounded-xl text-xs">
       <textarea id="footprintStory" rows="2" placeholder="当时的故事或心情..." class="w-full px-3 py-2 bg-gray-50 border rounded-xl text-xs"></textarea>
       <div class="flex gap-2 pt-2"><button onclick="closeModal('addFootprintModal')" class="flex-1 py-2 bg-gray-100 rounded-xl text-xs font-bold">取消</button><button onclick="addFootprint()" class="flex-1 py-2 bg-pinkAccent text-white rounded-xl text-xs font-bold">保存足迹</button></div>
@@ -559,7 +571,7 @@
       if (val) { store.startDate = val; closeModal('modal-love-date'); saveData(); showToast('✨ 恋爱起始日已更新！'); }
     }
 
-    /* 新功能1：随机恋爱盲盒抽签内容 */
+    /* 随机恋爱盲盒抽签内容 */
     const mysteryPool = [
       "🌟 签文：【大吉】今天出门会遇到超级好看的晚霞，记得拍照发给TA！",
       "💖 签文：【超甜】今天适合对TA说三次‘我爱你’，甜度直接爆表！",
@@ -576,9 +588,26 @@
       showToast("🎁 盲盒抽取成功！");
     }
 
-    /* 新功能2：足迹地图渲染 */
+    /* 🌟 足迹地图与列表切换交互 */
+    let isGlobeView = true;
+    function toggleGlobeView() {
+      isGlobeView = !isGlobeView;
+      const globeEl = document.getElementById('globeContainer');
+      const flatEl = document.getElementById('flatFootprintContainer');
+      const btn = document.getElementById('globeToggleBtn');
+      if (isGlobeView) {
+        globeEl.classList.remove('hidden');
+        flatEl.classList.add('hidden');
+        btn.innerText = '切换平铺地图';
+      } else {
+        globeEl.classList.add('hidden');
+        flatEl.classList.remove('hidden');
+        btn.innerText = '切换3D地球仪';
+      }
+    }
+
     function renderFootprints() {
-      const container = document.getElementById('footprint-container');
+      const container = document.getElementById('flatFootprintContainer');
       const list = store.footprints || [];
       container.innerHTML = list.map(item => `
         <div class="bg-white/90 p-3.5 rounded-2xl border border-pinkWarm/50 flex items-center justify-between text-xs shadow-2xs">
@@ -632,9 +661,7 @@
         isPlaying = true;
         document.getElementById('musicPlayIcon').className = 'fa-solid fa-pause text-xs';
         document.getElementById('musicTitle').innerText = `正在播放：${song.title}`;
-      }).catch(() => {
-        showToast("播放失败，音频链接可能失效");
-      });
+      }).catch(() => { showToast("播放失败，音频链接可能失效"); });
     }
 
     audio.addEventListener('timeupdate', () => {
@@ -650,9 +677,7 @@
     });
 
     function seekMusic(val) {
-      if (audio.duration) {
-        audio.currentTime = (val / 100) * audio.duration;
-      }
+      if (audio.duration) { audio.currentTime = (val / 100) * audio.duration; }
     }
 
     function renderPlaylist() {
@@ -677,10 +702,7 @@
       }
     }
 
-    function deleteMusic(idx) {
-      store.playlist.splice(idx, 1);
-      saveData(); showToast('🗑️ 已删除');
-    }
+    function deleteMusic(idx) { store.playlist.splice(idx, 1); saveData(); showToast('🗑️ 已删除'); }
 
     function renderCountdowns() {
       document.getElementById('countdown-list').innerHTML = (store.countdowns || []).map(item => {
@@ -968,6 +990,58 @@
       }
     }
 
+    /* 🌟 3D 地球仪动画初始化模型 */
+    let globeScene, globeCamera, globeRenderer, globeMesh, isDragging = false, previousMousePosition = { x: 0, y: 0 };
+    function init3DGlobe() {
+      const container = document.getElementById('globeContainer');
+      if (!container) return;
+      container.innerHTML = '';
+      const width = container.clientWidth, height = container.clientHeight;
+
+      globeScene = new THREE.Scene();
+      globeCamera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
+      globeCamera.position.z = 5;
+
+      globeRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+      globeRenderer.setSize(width, height);
+      container.appendChild(globeRenderer.domElement);
+
+      const sphereGeo = new THREE.SphereGeometry(2, 32, 32);
+      const sphereMat = new THREE.MeshBasicMaterial({ color: 0xFF7B9C, wireframe: true, transparent: true, opacity: 0.5 });
+      globeMesh = new THREE.Mesh(sphereGeo, sphereMat);
+      globeScene.add(globeMesh);
+
+      // 绑定鼠标/触控滑动旋转地球仪
+      container.addEventListener('mousedown', (e) => { isDragging = true; previousMousePosition = { x: e.clientX, y: e.clientY }; });
+      container.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+        const deltaX = e.clientX - previousMousePosition.x;
+        const deltaY = e.clientY - previousMousePosition.y;
+        globeMesh.rotation.y += deltaX * 0.005;
+        globeMesh.rotation.x += deltaY * 0.005;
+        previousMousePosition = { x: e.clientX, y: e.clientY };
+      });
+      window.addEventListener('mouseup', () => { isDragging = false; });
+
+      container.addEventListener('touchstart', (e) => { isDragging = true; previousMousePosition = { x: e.touches[0].clientX, y: e.touches[0].clientY }; });
+      container.addEventListener('touchmove', (e) => {
+        if (!isDragging) return;
+        const deltaX = e.touches[0].clientX - previousMousePosition.x;
+        const deltaY = e.touches[0].clientY - previousMousePosition.y;
+        globeMesh.rotation.y += deltaX * 0.005;
+        globeMesh.rotation.x += deltaY * 0.005;
+        previousMousePosition = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+      });
+      window.addEventListener('touchend', () => { isDragging = false; });
+
+      function animate() {
+        requestAnimationFrame(animate);
+        if (!isDragging) globeMesh.rotation.y += 0.003;
+        globeRenderer.render(globeScene, globeCamera);
+      }
+      animate();
+    }
+
     /* 3D Cosmos */
     function init3DCosmos() {
       const container = document.getElementById('cosmosCanvasContainer');
@@ -1013,6 +1087,7 @@
     }
 
     window.onload = function() {
+      init3DGlobe();
       init3DCosmos();
       const canvas = document.getElementById('webgl-bg');
       const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
