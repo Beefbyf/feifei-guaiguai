@@ -110,7 +110,7 @@
         </button>
         <div>
           <h1 class="text-xs font-bold text-darkText tracking-tight">飞飞与乖乖</h1>
-          <p class="text-[9px] text-subText" id="syncStatusText">☁️ 实时同步中 ✨</p>
+          <p class="text-[9px] text-subText" id="syncStatusText">☁️ 正在连接云端...</p>
         </div>
       </div>
       <nav class="flex gap-1 overflow-x-auto text-xs text-subText pr-1">
@@ -167,7 +167,7 @@
           </button>
         </div>
         <div id="mysteryBoxCard" class="bg-white/80 p-3.5 rounded-2xl border border-pinkWarm/60 text-xs text-darkText font-medium text-center min-h-[50px] flex items-center justify-center">
-          点击右上角按钮，抽取你们今天的专属甜蜜签文~
+          点击右上角按钮，抽取你们今年的专属甜蜜签文~
         </div>
       </section>
 
@@ -419,7 +419,7 @@
   <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-darkText/90 text-white text-xs px-4 py-2 rounded-full shadow-lg opacity-0 pointer-events-none transition-opacity duration-300"></div>
 
   <script>
-    /* ================= FIREBASE CLOUD SYNC ================= */
+    /* ================= FIREBASE CLOUD SYNC + LOCAL BACKUP ================= */
     const firebaseConfig = { databaseURL: "https://feifei-guaiguai-default-rtdb.firebaseio.com/" };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
@@ -432,6 +432,12 @@
 
     let isRemoteUpdate = false;
 
+    // 优先从本地缓存读取兜底，防止网络闪断时数据清空
+    const localCached = localStorage.getItem('loveUniverseLocalBackup');
+    if (localCached) {
+      try { store = JSON.parse(localCached); renderAll(); } catch(e) {}
+    }
+
     dbRef.on('value', (snapshot) => {
       const data = snapshot.val();
       if (data) {
@@ -442,12 +448,19 @@
         isRemoteUpdate = true;
         renderAll();
         isRemoteUpdate = false;
-        document.getElementById('syncStatusText').innerText = '☁️ 双人实时同步中 ✨';
-      } else { saveData(); }
-    }, () => { document.getElementById('syncStatusText').innerText = '⚠️ 离线模式'; });
+        localStorage.setItem('loveUniverseLocalBackup', JSON.stringify(store));
+        document.getElementById('syncStatusText').innerText = '☁️ 双人云端同步中 ✨';
+      } else {
+        // 如果云端是空的，把本地有的数据推上去
+        saveData();
+      }
+    }, (error) => {
+      document.getElementById('syncStatusText').innerText = '⚠️ 离线本地模式';
+    });
 
     function saveData() {
       if (isRemoteUpdate) return;
+      localStorage.setItem('loveUniverseLocalBackup', JSON.stringify(store));
       renderAll();
       dbRef.set(store).catch(() => {});
     }
@@ -729,8 +742,7 @@
 
     function triggerBatchUpload() { document.getElementById('batch-photo-input').click(); }
 
-    /* 核心修复：前端自动高清压缩机制 (确保多图上传100%成功、永久稳定) */
-    function compressImage(file, maxWidth = 1200, quality = 0.8) {
+    function compressImage(file, maxWidth = 1000, quality = 0.75) {
       return new Promise((resolve) => {
         if (file.type.startsWith('video')) {
           const reader = new FileReader();
@@ -766,7 +778,6 @@
       if (!album) return;
 
       showToast(`⏳ 正在处理并保存 ${files.length} 张照片...`);
-
       if (!album.photos) album.photos = [];
 
       for (let i = 0; i < files.length; i++) {
@@ -866,7 +877,6 @@
       }
     }
 
-    /* 3D Cosmos */
     function init3DCosmos() {
       const container = document.getElementById('cosmosCanvasContainer');
       if (!container) return;
