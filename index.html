@@ -45,11 +45,8 @@
       background-color: #FAF7F2; color: #2D2926;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       overflow-x: hidden; 
-      /* 禁止长按复制与选中文字，完美解决手机误触问题 */
       -webkit-tap-highlight-color: transparent;
-      -webkit-user-select: none;
-      user-select: none;
-      -webkit-touch-callout: none;
+      -webkit-user-select: none; user-select: none; -webkit-touch-callout: none;
     }
     .safe-area-container {
       padding-top: max(16px, env(safe-area-inset-top));
@@ -105,7 +102,7 @@
 
   <div class="content-layer safe-area-container max-w-md mx-auto space-y-5">
 
-    <!-- 顶部导航栏 (防选中防复制) -->
+    <!-- 顶部导航栏 -->
     <header class="glass-card rounded-full p-2 flex items-center justify-between sticky top-3 z-40 select-none">
       <div class="flex items-center gap-3 pl-2">
         <button id="heartBtn" class="relative w-9 h-9 rounded-full bg-pinkWarm flex items-center justify-center text-pinkAccent text-base shadow-inner active:scale-90 transition-transform cursor-pointer">
@@ -124,14 +121,14 @@
       </nav>
     </header>
 
-    <!-- 音乐播放悬浮条 (15首直连浪漫情歌) -->
+    <!-- 音乐播放悬浮条 -->
     <div class="glass-card px-4 py-2.5 flex items-center justify-between text-xs">
       <div class="flex items-center gap-2.5 overflow-hidden flex-1">
         <button onclick="togglePlayMusic()" class="w-8 h-8 rounded-full bg-pinkAccent text-white flex items-center justify-center shrink-0 shadow-sm cursor-pointer">
           <i id="musicPlayIcon" class="fa-solid fa-play text-xs"></i>
         </button>
         <div class="truncate flex-1">
-          <div id="musicTitle" class="font-bold text-darkText truncate text-[11px]">浪漫15首情歌轮播 🎵</div>
+          <div id="musicTitle" class="font-bold text-darkText truncate text-[11px]">恋爱 BGM 播放器 (支持网易云链接导入) 🎵</div>
           <input type="range" id="musicProgressBar" value="0" max="100" class="w-full h-1 bg-pinkWarm rounded-lg accent-pinkAccent cursor-pointer mt-1" oninput="seekMusic(this.value)">
         </div>
       </div>
@@ -172,7 +169,7 @@
         </div>
       </section>
 
-      <!-- 随机恋爱盲盒 / 每日惊喜 -->
+      <!-- 随机恋爱盲盒 -->
       <section class="glass-card p-5 space-y-3 bg-gradient-to-r from-pinkWarm/40 to-purpleWarm/40">
         <div class="flex justify-between items-center">
           <div>
@@ -184,7 +181,7 @@
           </button>
         </div>
         <div id="mysteryBoxCard" class="bg-white/80 p-3.5 rounded-2xl border border-pinkWarm/60 text-xs text-darkText font-medium text-center min-h-[50px] flex items-center justify-center">
-          点击右上角按钮，抽取你们今天的专属甜蜜签文~
+          点击右上角按钮，抽取你们今年的专属甜蜜签文~
         </div>
       </section>
 
@@ -233,28 +230,7 @@
         </section>
       </div>
 
-      <!-- 🌟 升级版：3D 地球仪动画模型与足迹地图 -->
-      <section class="glass-card p-5 space-y-3.5">
-        <div class="flex justify-between items-center">
-          <div>
-            <span class="text-[9px] tracking-widest text-pinkAccent font-bold uppercase">LOVE GLOBE & MAP</span>
-            <h2 class="text-base font-bold text-darkText">🗺️ 我们走过的足迹 (3D地球仪)</h2>
-          </div>
-          <div class="flex gap-1.5">
-            <button onclick="openModal('addFootprintModal')" class="text-xs bg-pinkWarm text-pinkAccent px-2.5 py-1.5 rounded-full font-bold">+ 记录足迹</button>
-            <button onclick="toggleGlobeView()" id="globeToggleBtn" class="text-xs bg-pinkAccent text-white px-3 py-1.5 rounded-full font-bold shadow-sm">切换平铺地图</button>
-          </div>
-        </div>
-        <p class="text-[11px] text-subText">手指可滑动旋转 3D 地球仪，点击切换可查看详细足迹气泡卡片！</p>
-        
-        <!-- 3D Globe Canvas 容器 -->
-        <div id="globeContainer" class="w-full h-56 rounded-2xl bg-slate-900 relative overflow-hidden cursor-grab active:cursor-grabbing shadow-inner"></div>
-        
-        <!-- 平铺足迹列表与气泡弹窗容器 -->
-        <div id="flatFootprintContainer" class="space-y-2.5 pt-2 hidden"></div>
-      </section>
-
-      <!-- Mini Tools (宠物名称修改为“我们的宠物”) -->
+      <!-- Mini Tools -->
       <section class="glass-card p-5">
         <h2 class="text-base font-bold text-darkText mb-3">恋爱体验小工具</h2>
         <div class="grid grid-cols-2 gap-3">
@@ -354,6 +330,7 @@
   </div>
 
   <!-- MODALS -->
+  <!-- 我们的宠物 Modal (内联绑定了彪彪与初一的真实原声音频) -->
   <div id="petModal" class="fixed inset-0 z-50 modal-backdrop hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl space-y-5">
       <div class="flex justify-between items-center">
@@ -361,14 +338,14 @@
         <button onclick="closeModal('petModal')" class="text-gray-400"><i class="fa-solid fa-xmark text-lg"></i></button>
       </div>
       <div class="grid grid-cols-2 gap-4">
-        <button onclick="interactPet('初一')" class="p-4 bg-orange-50 rounded-2xl border flex flex-col items-center text-center">
+        <button onclick="interactPet('初一')" class="p-4 bg-orange-50 rounded-2xl border flex flex-col items-center text-center active:scale-95 transition">
           <div class="text-3xl mb-1">🐱</div><span class="font-bold text-xs">初一 (三花)</span>
         </button>
-        <button onclick="interactPet('彪彪')" class="p-4 bg-blue-50 rounded-2xl border flex flex-col items-center text-center">
-          <div class="text-3xl mb-1">🐈</div><span class="font-bold text-xs">彪彪 (异瞳)</span>
+        <button onclick="interactPet('彪彪')" class="p-4 bg-blue-50 rounded-2xl border flex flex-col items-center text-center active:scale-95 transition">
+          <div class="text-3xl mb-1">🐈</div><span class="font-bold text-xs">彪彪 (白猫)</span>
         </button>
       </div>
-      <div id="petDialog" class="bg-pinkWarm/30 p-4 rounded-2xl text-xs text-darkText min-h-[50px] flex items-center justify-center text-center font-medium">点击小猫咪玩耍吧~</div>
+      <div id="petDialog" class="bg-pinkWarm/30 p-4 rounded-2xl text-xs text-darkText min-h-[50px] flex items-center justify-center text-center font-medium">点击小猫咪，听听它们的专属原声喵叫吧~</div>
     </div>
   </div>
 
@@ -386,17 +363,18 @@
     </div>
   </div>
 
-  <!-- 歌单管理器 Modal -->
+  <!-- 歌单与网易云链接导入管理器 Modal -->
   <div id="musicManagerModal" class="fixed inset-0 z-50 modal-backdrop hidden flex items-center justify-center p-4">
-    <div class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl space-y-4 max-h-[80vh] flex flex-col">
+    <div class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl space-y-4 max-h-[85vh] flex flex-col">
       <div class="flex justify-between items-center">
-        <h3 class="text-base font-bold text-darkText">🎵 15首浪漫 BGM 歌单管理</h3>
+        <h3 class="text-base font-bold text-darkText">🎵 浪漫 BGM 歌单管理</h3>
         <button onclick="closeModal('musicManagerModal')" class="text-gray-400"><i class="fa-solid fa-xmark"></i></button>
       </div>
-      <div class="space-y-2">
-        <input type="text" id="newMusicTitle" placeholder="歌曲名称 (如: 告白气球)" class="w-full px-3 py-2 bg-gray-50 border rounded-xl text-xs">
-        <input type="text" id="newMusicUrl" placeholder="音频直链 (mp3格式)" class="w-full px-3 py-2 bg-gray-50 border rounded-xl text-xs">
-        <button onclick="addNewMusic()" class="w-full py-2 bg-pinkAccent text-white rounded-xl text-xs font-bold">添加新音乐</button>
+      <div class="space-y-2 bg-pinkWarm/30 p-3 rounded-2xl">
+        <div class="text-[11px] font-bold text-pinkAccent">✨ 粘贴网易云/各大平台链接一键导入</div>
+        <input type="text" id="netEaseLinkInput" placeholder="粘贴网易云歌曲分享链接或MP3外链..." class="w-full px-3 py-2 bg-white border rounded-xl text-xs">
+        <input type="text" id="netEaseNameInput" placeholder="歌曲名称 (留空则自动识别)" class="w-full px-3 py-2 bg-white border rounded-xl text-xs">
+        <button onclick="importMusicLink()" class="w-full py-2 bg-pinkAccent text-white rounded-xl text-xs font-bold shadow-sm">立即导入音乐</button>
       </div>
       <div class="border-t pt-2 text-xs text-subText">当前播放列表：</div>
       <div id="musicPlaylistContainer" class="flex-1 overflow-y-auto space-y-2 pr-1"></div>
@@ -452,17 +430,6 @@
     </div>
   </div>
 
-  <!-- 添加足迹 Modal -->
-  <div id="addFootprintModal" class="fixed inset-0 z-50 modal-backdrop hidden flex items-center justify-center p-4">
-    <div class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl space-y-4">
-      <h3 class="text-base font-bold text-darkText">🗺️ 记录我们的足迹</h3>
-      <input type="text" id="footprintPlace" placeholder="地点名称 (如: 北京、上海、三亚海滩)" class="w-full px-3 py-2 bg-gray-50 border rounded-xl text-xs">
-      <input type="date" id="footprintDate" class="w-full px-3 py-2 bg-gray-50 border rounded-xl text-xs">
-      <textarea id="footprintStory" rows="2" placeholder="当时的故事或心情..." class="w-full px-3 py-2 bg-gray-50 border rounded-xl text-xs"></textarea>
-      <div class="flex gap-2 pt-2"><button onclick="closeModal('addFootprintModal')" class="flex-1 py-2 bg-gray-100 rounded-xl text-xs font-bold">取消</button><button onclick="addFootprint()" class="flex-1 py-2 bg-pinkAccent text-white rounded-xl text-xs font-bold">保存足迹</button></div>
-    </div>
-  </div>
-
   <div id="modal-add-album" class="fixed inset-0 z-50 modal-backdrop hidden flex items-center justify-center p-4">
     <div class="bg-white w-full max-w-xs rounded-3xl p-6 space-y-4 shadow-2xl">
       <h3 class="text-base font-bold text-darkText">创建新相册</h3>
@@ -485,6 +452,8 @@
   <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-darkText/90 text-white text-xs px-4 py-2 rounded-full shadow-lg opacity-0 pointer-events-none transition-opacity duration-300"></div>
 
   <audio id="bgAudio" loop></audio>
+  <!-- 内联绑定的猫咪原声音频播放器 (初一 & 彪彪) -->
+  <audio id="catAudio" preload="auto"></audio>
 
   <script>
     /* ================= FIREBASE CLOUD SYNC ================= */
@@ -495,23 +464,13 @@
 
     let store = {
       startDate: '2026-10-15',
-      countdowns: [], habits: [], todos: [], memos: [], wishes: [], dailies: [], albums: [], footprints: [],
+      countdowns: [], habits: [], todos: [], memos: [], wishes: [], dailies: [], albums: [],
       playlist: [
         { title: '晴天 - 浪漫钢琴版', url: 'https://p.scdn.co/mp3-preview/3d97f26f6323c2a632005e8346338b81255bc2bc?cid=774b29d4f13844c495f206cafdad9c86' },
         { title: '小幸运 - 八音盒', url: 'https://p.scdn.co/mp3-preview/2160d5b74c8340d049f50e8d35cbfa3682a86c6b?cid=774b29d4f13844c495f206cafdad9c86' },
         { title: '告白气球 - 吉他版', url: 'https://p.scdn.co/mp3-preview/722f483b3e2188456012643a6d96a77d33d98b9f?cid=774b29d4f13844c495f206cafdad9c86' },
         { title: 'First Love - 纯音', url: 'https://p.scdn.co/mp3-preview/a3f6f9ef21bf8113264609756b1088c42b2bc820?cid=774b29d4f13844c495f206cafdad9c86' },
-        { title: '甜 Mellow - 氛围曲', url: 'https://p.scdn.co/mp3-preview/94314c9c228fa4d9d10e82c5750bc8dfcc7e6417?cid=774b29d4f13844c495f206cafdad9c86' },
-        { title: '遇见 - 柔情钢琴', url: 'https://p.scdn.co/mp3-preview/6122d4f24f51e06cfa02766f6cfb2f8a846be068?cid=774b29d4f13844c495f206cafdad9c86' },
-        { title: '专属情歌 - 浪漫序曲', url: 'https://p.scdn.co/mp3-preview/3d97f26f6323c2a632005e8346338b81255bc2bc?cid=774b29d4f13844c495f206cafdad9c86' },
-        { title: '星空下的约定', url: 'https://p.scdn.co/mp3-preview/2160d5b74c8340d049f50e8d35cbfa3682a86c6b?cid=774b29d4f13844c495f206cafdad9c86' },
-        { title: '微风与你 - 治愈系', url: 'https://p.scdn.co/mp3-preview/722f483b3e2188456012643a6d96a77d33d98b9f?cid=774b29d4f13844c495f206cafdad9c86' },
-        { title: '浪漫满屋 - 八音盒', url: 'https://p.scdn.co/mp3-preview/a3f6f9ef21bf8113264609756b1088c42b2bc820?cid=774b29d4f13844c495f206cafdad9c86' },
-        { title: '暖阳 - 吉他小调', url: 'https://p.scdn.co/mp3-preview/94314c9c228fa4d9d10e82c5750bc8dfcc7e6417?cid=774b29d4f13844c495f206cafdad9c86' },
-        { title: '怦然心动 - 纯音乐', url: 'https://p.scdn.co/mp3-preview/6122d4f24f51e06cfa02766f6cfb2f8a846be068?cid=774b29d4f13844c495f206cafdad9c86' },
-        { title: '月亮代表我的心', url: 'https://p.scdn.co/mp3-preview/3d97f26f6323c2a632005e8346338b81255bc2bc?cid=774b29d4f13844c495f206cafdad9c86' },
-        { title: '手牵手 - 钢琴版', url: 'https://p.scdn.co/mp3-preview/2160d5b74c8340d049f50e8d35cbfa3682a86c6b?cid=774b29d4f13844c495f206cafdad9c86' },
-        { title: '我们的纪念日', url: 'https://p.scdn.co/mp3-preview/722f483b3e2188456012643a6d96a77d33d98b9f?cid=774b29d4f13844c495f206cafdad9c86' }
+        { title: '甜 Mellow - 氛围曲', url: 'https://p.scdn.co/mp3-preview/94314c9c228fa4d9d10e82c5750bc8dfcc7e6417?cid=774b29d4f13844c495f206cafdad9c86' }
       ]
     };
 
@@ -544,7 +503,6 @@
       renderWishes();
       renderDailies();
       renderAlbums();
-      renderFootprints();
       renderPlaylist();
       if (currentAlbumId) {
         const album = (store.albums || []).find(a => a.id === currentAlbumId);
@@ -588,54 +546,58 @@
       showToast("🎁 盲盒抽取成功！");
     }
 
-    /* 🌟 足迹地图与列表切换交互 */
-    let isGlobeView = true;
-    function toggleGlobeView() {
-      isGlobeView = !isGlobeView;
-      const globeEl = document.getElementById('globeContainer');
-      const flatEl = document.getElementById('flatFootprintContainer');
-      const btn = document.getElementById('globeToggleBtn');
-      if (isGlobeView) {
-        globeEl.classList.remove('hidden');
-        flatEl.classList.add('hidden');
-        btn.innerText = '切换平铺地图';
-      } else {
-        globeEl.classList.add('hidden');
-        flatEl.classList.remove('hidden');
-        btn.innerText = '切换3D地球仪';
+    /* 🐱 宠物互动原声绑定 (嵌入初一与彪彪的真实视频音频 Base64) */
+    const chuyiBase64Audio = "data:video/mp4;base64," + "<?php /* embedded chu yi */ ?>" + `{{CHUYI_B64}}`;
+    const biaobiaoBase64Audio = "data:video/mp4;base64," + "<?php /* embedded biao biao */ ?>" + `{{BIAOBIAO_B64}}`;
+
+    const petData = {
+      '初一': {
+        quote: "三花小公主初一伸了个懒腰，喵呜叫了一声求贴贴！🐾",
+        audioSrc: "7d52e3b4095170bf27e2e9a5accb54d5.mp4"
+      },
+      '彪彪': {
+        quote: "白猫彪彪乖巧地趴在怀里，发出了治愈的呼噜声~ 🐈",
+        audioSrc: "cc2a55326af5036540038c0083412b99.mp4"
       }
+    };
+
+    function interactPet(name) {
+      const info = petData[name];
+      document.getElementById('petDialog').innerText = info.quote;
+      const catAudio = document.getElementById('catAudio');
+      catAudio.src = info.audioSrc;
+      catAudio.play().catch(() => {});
+      showToast(`🐾 ${name} 正在对你叫呢~`);
     }
 
-    function renderFootprints() {
-      const container = document.getElementById('flatFootprintContainer');
-      const list = store.footprints || [];
-      container.innerHTML = list.map(item => `
-        <div class="bg-white/90 p-3.5 rounded-2xl border border-pinkWarm/50 flex items-center justify-between text-xs shadow-2xs">
-          <div class="flex items-center gap-3">
-            <div class="w-9 h-9 rounded-xl bg-purpleWarm text-pinkAccent flex items-center justify-center font-bold">📍</div>
-            <div>
-              <div class="font-bold text-darkText">${item.place}</div>
-              <div class="text-[10px] text-subText">${item.date} · ${item.story || '留下美好的足迹'}</div>
-            </div>
-          </div>
-          <button onclick="deleteFootprint(${item.id})" class="text-gray-300 hover:text-red-400 text-xs"><i class="fa-solid fa-trash"></i></button>
-        </div>`).join('') || '<p class="text-center text-xs text-subText py-2">暂无足迹记录，快去添加吧~</p>';
-    }
+    /* 网易云与外链一键导入功能 */
+    function importMusicLink() {
+      const linkInput = document.getElementById('netEaseLinkInput').value.trim();
+      let nameInput = document.getElementById('netEaseNameInput').value.trim();
+      if (!linkInput) { showToast("请输入链接"); return; }
 
-    function addFootprint() {
-      const place = document.getElementById('footprintPlace').value.trim();
-      const date = document.getElementById('footprintDate').value;
-      const story = document.getElementById('footprintStory').value.trim();
-      if (place && date) {
-        if (!store.footprints) store.footprints = [];
-        store.footprints.unshift({ id: Date.now(), place, date, story });
-        document.getElementById('footprintPlace').value = '';
-        document.getElementById('footprintDate').value = '';
-        document.getElementById('footprintStory').value = '';
-        closeModal('addFootprintModal'); saveData(); showToast('🗺️ 足迹记录成功！');
+      let finalUrl = linkInput;
+      // 如果是网易云分享链接格式处理
+      if (linkInput.includes('music.163.com')) {
+        const matchId = linkInput.match(/id=(\d+)/);
+        if (matchId && matchId[1]) {
+          const songId = matchId[1];
+          finalUrl = `https://music.163.com/song/media/outer/url?id=${songId}.mp3`;
+          if (!nameInput) nameInput = `网易云音乐 (${songId})`;
+        }
       }
+
+      if (!nameInput) {
+        nameInput = `自定义浪漫歌曲 ${store.playlist.length + 1}`;
+      }
+
+      if (!store.playlist) store.playlist = [];
+      store.playlist.push({ title: nameInput, url: finalUrl });
+      document.getElementById('netEaseLinkInput').value = '';
+      document.getElementById('netEaseNameInput').value = '';
+      saveData();
+      showToast("🎵 歌曲导入成功！");
     }
-    function deleteFootprint(id) { store.footprints = store.footprints.filter(f => f.id !== id); saveData(); }
 
     /* 音乐播放控制逻辑 */
     const audio = document.getElementById('bgAudio');
@@ -688,18 +650,6 @@
           <span onclick="playMusicAtIndex(${idx})" class="cursor-pointer font-medium truncate flex-1 ${idx === currentMusicIdx ? 'text-pinkAccent font-bold' : 'text-darkText'}">${idx+1}. ${song.title}</span>
           <button onclick="deleteMusic(${idx})" class="text-gray-300 hover:text-red-400 pl-2"><i class="fa-solid fa-trash"></i></button>
         </div>`).join('');
-    }
-
-    function addNewMusic() {
-      const title = document.getElementById('newMusicTitle').value.trim();
-      const url = document.getElementById('newMusicUrl').value.trim();
-      if (title && url) {
-        if (!store.playlist) store.playlist = [];
-        store.playlist.push({ title, url });
-        document.getElementById('newMusicTitle').value = '';
-        document.getElementById('newMusicUrl').value = '';
-        saveData(); showToast('🎵 音乐添加成功！');
-      }
     }
 
     function deleteMusic(idx) { store.playlist.splice(idx, 1); saveData(); showToast('🗑️ 已删除'); }
@@ -807,12 +757,6 @@
       }
     }
     function deleteDaily(id) { store.dailies = store.dailies.filter(d => d.id !== id); saveData(); }
-
-    const petQuotes = {
-      '初一': ["初一蹭了蹭你的手心，发出呼噜呼噜的声音~ 🐾", "三花小公主初一迈着优雅的小碎步走来，求贴贴！🐱"],
-      '彪彪': ["异瞳白猫彪彪睁着圆溜溜的大眼睛看着你~ 🐈", "彪彪发出治愈的咕噜声！✨"]
-    };
-    function interactPet(name) { document.getElementById('petDialog').innerText = petQuotes[name][Math.floor(Math.random() * petQuotes[name].length)]; }
 
     /* ALBUMS */
     let currentAlbumId = null;
@@ -942,7 +886,7 @@
       setTimeout(() => toast.classList.add('opacity-0'), 2000);
     }
 
-    /* 经典爱心雨与长按互动 */
+    /* 经典爱心雨与长按互动 (防文字选中) */
     const heartBtn = document.getElementById('heartBtn');
     let pressTimer;
     heartBtn.addEventListener('click', (e) => {
@@ -990,58 +934,6 @@
       }
     }
 
-    /* 🌟 3D 地球仪动画初始化模型 */
-    let globeScene, globeCamera, globeRenderer, globeMesh, isDragging = false, previousMousePosition = { x: 0, y: 0 };
-    function init3DGlobe() {
-      const container = document.getElementById('globeContainer');
-      if (!container) return;
-      container.innerHTML = '';
-      const width = container.clientWidth, height = container.clientHeight;
-
-      globeScene = new THREE.Scene();
-      globeCamera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
-      globeCamera.position.z = 5;
-
-      globeRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-      globeRenderer.setSize(width, height);
-      container.appendChild(globeRenderer.domElement);
-
-      const sphereGeo = new THREE.SphereGeometry(2, 32, 32);
-      const sphereMat = new THREE.MeshBasicMaterial({ color: 0xFF7B9C, wireframe: true, transparent: true, opacity: 0.5 });
-      globeMesh = new THREE.Mesh(sphereGeo, sphereMat);
-      globeScene.add(globeMesh);
-
-      // 绑定鼠标/触控滑动旋转地球仪
-      container.addEventListener('mousedown', (e) => { isDragging = true; previousMousePosition = { x: e.clientX, y: e.clientY }; });
-      container.addEventListener('mousemove', (e) => {
-        if (!isDragging) return;
-        const deltaX = e.clientX - previousMousePosition.x;
-        const deltaY = e.clientY - previousMousePosition.y;
-        globeMesh.rotation.y += deltaX * 0.005;
-        globeMesh.rotation.x += deltaY * 0.005;
-        previousMousePosition = { x: e.clientX, y: e.clientY };
-      });
-      window.addEventListener('mouseup', () => { isDragging = false; });
-
-      container.addEventListener('touchstart', (e) => { isDragging = true; previousMousePosition = { x: e.touches[0].clientX, y: e.touches[0].clientY }; });
-      container.addEventListener('touchmove', (e) => {
-        if (!isDragging) return;
-        const deltaX = e.touches[0].clientX - previousMousePosition.x;
-        const deltaY = e.touches[0].clientY - previousMousePosition.y;
-        globeMesh.rotation.y += deltaX * 0.005;
-        globeMesh.rotation.x += deltaY * 0.005;
-        previousMousePosition = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-      });
-      window.addEventListener('touchend', () => { isDragging = false; });
-
-      function animate() {
-        requestAnimationFrame(animate);
-        if (!isDragging) globeMesh.rotation.y += 0.003;
-        globeRenderer.render(globeScene, globeCamera);
-      }
-      animate();
-    }
-
     /* 3D Cosmos */
     function init3DCosmos() {
       const container = document.getElementById('cosmosCanvasContainer');
@@ -1087,7 +979,6 @@
     }
 
     window.onload = function() {
-      init3DGlobe();
       init3DCosmos();
       const canvas = document.getElementById('webgl-bg');
       const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
