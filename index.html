@@ -14,7 +14,7 @@
   <!-- Tailwind CSS & FontAwesome Icons -->
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <!-- Three.js for 3D Heart Cosmos -->
+  <!-- Three.js for 3D Cosmos -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
   <script>
@@ -94,7 +94,6 @@
       box-shadow: 0 4px 12px rgba(255, 123, 156, 0.35);
     }
 
-    /* Heart Burst Animation */
     .burst-heart {
       position: fixed;
       pointer-events: none;
@@ -106,16 +105,6 @@
       0% { transform: translate(-50%, -50%) scale(0.5) rotate(0deg); opacity: 1; }
       50% { transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(1.4) rotate(var(--rot)); opacity: 0.9; }
       100% { transform: translate(calc(-50% + var(--dx) * 1.5), calc(-50% - 100px)) scale(1.8) rotate(var(--rot)); opacity: 0; }
-    }
-
-    .pulse-heart-center {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%) scale(0);
-      pointer-events: none;
-      z-index: 9998;
-      transition: transform 0.2s ease-out, opacity 0.4s ease;
     }
 
     .modal-backdrop {
@@ -256,6 +245,21 @@
           </button>
         </div>
       </section>
+
+      <!-- 3D Photo Cosmos Wall (回归!) -->
+      <section class="bg-slate-950 rounded-3xl p-4 shadow-soft text-white relative overflow-hidden">
+        <div class="flex justify-between items-center mb-2 z-10 relative">
+          <div>
+            <span class="text-[9px] tracking-widest text-pinkAccent font-bold uppercase block">3D Photo Cosmos</span>
+            <h2 class="text-base font-bold text-white">随机浪漫照片星空</h2>
+          </div>
+          <button onclick="init3DCosmos()" class="text-xs bg-white/10 hover:bg-white/20 px-2.5 py-1 rounded-full text-pink-200 transition">
+            <i class="fa-solid fa-rotate-right"></i> 重新打乱
+          </button>
+        </div>
+        <p class="text-[11px] text-gray-400 mb-2 z-10 relative">每次打开都是不一样的浪漫记忆浮岛，滑动旋转视角。</p>
+        <div id="cosmosCanvasContainer" class="w-full h-60 rounded-2xl relative overflow-hidden cursor-grab active:cursor-grabbing"></div>
+      </section>
     </main>
 
     <!-- PAGE 2: 相册 -->
@@ -359,7 +363,7 @@
     </div>
   </div>
 
-  <!-- 修改恋爱起始日 (带年月日完美兼容) -->
+  <!-- 修改恋爱起始日 (年月日选择) -->
   <div id="modal-love-date" class="fixed inset-0 z-50 modal-backdrop hidden flex items-center justify-center p-4">
     <div class="bg-white w-full max-w-xs rounded-3xl p-6 space-y-4 shadow-2xl">
       <h3 class="text-base font-bold text-darkText">修改恋爱起始日期</h3>
@@ -436,7 +440,7 @@
   <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-darkText/90 text-white text-xs px-4 py-2 rounded-full shadow-lg opacity-0 pointer-events-none transition-opacity duration-300"></div>
 
   <script>
-    /* ================= LOCAL STORAGE STORE (秒开无延迟) ================= */
+    /* ================= LOCAL STORAGE STORE (极速秒开) ================= */
     let store = JSON.parse(localStorage.getItem('feifei_love_universe')) || {
       startDate: '2026-10-15',
       countdowns: [{ id: 1, title: '我们的第一个月纪念日', date: '2026-11-15' }],
@@ -750,14 +754,69 @@
       setTimeout(() => toast.classList.add('opacity-0'), 2000);
     }
 
-    // 交互特效
-    document.getElementById('heartBtn').addEventListener('click', (e) => {
+    document.getElementById('heartBtn').addEventListener('click', () => {
       showToast("今天也是爱你的一天 💕");
     });
+
+    /* ================= 3D PHOTO COSMOS WALL ================= */
+    let cosmosScene, cosmosCamera, cosmosRenderer, photoGroup;
+
+    function init3DCosmos() {
+      const container = document.getElementById('cosmosCanvasContainer');
+      if (!container) return;
+      container.innerHTML = '';
+      const width = container.clientWidth;
+      const height = container.clientHeight;
+
+      cosmosScene = new THREE.Scene();
+      cosmosCamera = new THREE.PerspectiveCamera(60, width / height, 0.1, 1000);
+      cosmosCamera.position.z = 12;
+
+      cosmosRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+      cosmosRenderer.setSize(width, height);
+      container.appendChild(cosmosRenderer.domElement);
+
+      photoGroup = new THREE.Group();
+      cosmosScene.add(photoGroup);
+
+      const cardGeo = new THREE.PlaneGeometry(2.6, 1.9);
+      for (let i = 0; i < 6; i++) {
+        const canvas = document.createElement('canvas');
+        canvas.width = 260; canvas.height = 190;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#FFF5EE'; ctx.fillRect(0, 0, 260, 190);
+        ctx.strokeStyle = '#FF7B9C'; ctx.lineWidth = 6; ctx.strokeRect(3, 3, 254, 184);
+        ctx.fillStyle = '#FF7B9C'; ctx.font = '36px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('💖', 130, 95);
+        ctx.fillStyle = '#2D2926'; ctx.font = 'bold 16px sans-serif'; ctx.fillText('浪漫回忆', 130, 145);
+
+        const texture = new THREE.CanvasTexture(canvas);
+        const cardMat = new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide });
+        const cardMesh = new THREE.Mesh(cardGeo, cardMat);
+        
+        const u = Math.random(), v = Math.random();
+        const theta = u * 2.0 * Math.PI, phi = Math.acos(2.0 * v - 1.0);
+        const r = 5.5 + Math.random() * 2;
+        cardMesh.position.x = r * Math.sin(phi) * Math.cos(theta);
+        cardMesh.position.y = r * Math.sin(phi) * Math.sin(theta);
+        cardMesh.position.z = r * Math.cos(phi);
+        cardMesh.lookAt(0, 0, 0);
+        photoGroup.add(cardMesh);
+      }
+
+      function animate() {
+        requestAnimationFrame(animate);
+        photoGroup.rotation.y += 0.002;
+        cosmosRenderer.render(cosmosScene, cosmosCamera);
+      }
+      animate();
+    }
 
     // 初始化背景与页面
     window.onload = function() {
       renderAll();
+      init3DCosmos();
+
+      // 3D背景星空
       const canvas = document.getElementById('webgl-bg');
       const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
       renderer.setSize(window.innerWidth, window.innerHeight);
@@ -776,12 +835,12 @@
       const material = new THREE.PointsMaterial({ size: 0.75, color: 0xFF7B9C, transparent: true, opacity: 0.6 });
       const points = new THREE.Points(geometry, material);
       scene.add(points);
-      function animate() {
-        requestAnimationFrame(animate);
+      function animateBg() {
+        requestAnimationFrame(animateBg);
         points.rotation.y += 0.001;
         renderer.render(scene, camera);
       }
-      animate();
+      animateBg();
     };
   </script>
 </body>
